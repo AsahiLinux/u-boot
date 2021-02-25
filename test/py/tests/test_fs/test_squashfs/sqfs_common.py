@@ -32,7 +32,8 @@ class Compression:
 
     def gen_image(self, build_dir):
         src = os.path.join(build_dir, "sqfs_src/")
-        os.mkdir(src)
+        if not os.path.exists(src):
+            os.mkdir(src)
         for (f, s) in zip(self.files, self.sizes):
             sqfs_generate_file(src + f, s)
 
