@@ -106,3 +106,11 @@ Deadline: 2022.10
 This is a legacy option which has been replaced by driver model.
 Maintainers should submit patches switching over to using CONFIG_DM_KEYBOARD and
 other base driver model options in time for inclusion in the 2022.10 release.
+
+CONFIG_SYS_TIMER_RATE and CONFIG_SYS_TIMER_COUNTER
+--------------------------------------------------
+Deadline: 2022.10
+
+These are legacy options which have been replaced by driver model.
+Maintainers should submit patches switching over to using CONFIG_TIMER and
+other base driver model options in time for inclusion in the 2022.10 release.
