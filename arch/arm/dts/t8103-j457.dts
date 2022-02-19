@@ -14,11 +14,24 @@
 
 / {
 	compatible = "apple,j457", "apple,t8103", "apple,arm-platform";
-	model = "Apple iMac (24-inch, 2x USB-C, M1, 2020)";
+	model = "Apple iMac (24-inch, 2x USB-C, M1, 2021)";
 
 	aliases {
 		ethernet0 = &ethernet0;
 	};
+};
+
+&dcp {
+	panel: panel {
+		compatible = "apple,panel-j457", "apple,panel";
+		width-mm = <522>;
+		height-mm = <294>;
+		apple,max-brightness = <525>;
+	};
+};
+
+&bluetooth0 {
+	brcm,board-type = "apple,santorini";
 };
 
 &wifi0 {
@@ -45,6 +58,7 @@
 
 &port02 {
 	bus-range = <3 3>;
+	status = "okay";
 	ethernet0: ethernet@0,0 {
 		reg = <0x30000 0x0 0x0 0x0 0x0>;
 		/* To be filled by the loader */
@@ -52,54 +66,47 @@
 	};
 };
 
-/*
- * Remove unused PCIe port and disable the associated DART.
- */
-
-&pcie0_dart_1 {
-	status = "disabled";
+&pcie0_dart_2 {
+	status = "okay";
 };
 
-/delete-node/ &port01;
-
 &i2c1 {
-	clock-frequency = <50000>;
-
 	jack_codec: codec@48 {
-		compatible = "cirrus,cs42l83", "cirrus,cs42l42";
+		compatible = "cirrus,cs42l83";
 		reg = <0x48>;
 		reset-gpios = <&pinctrl_nub 11 GPIO_ACTIVE_HIGH>;
 		interrupt-parent = <&pinctrl_ap>;
 		interrupts = <183 IRQ_TYPE_LEVEL_LOW>;
 		#sound-dai-cells = <0>;
 		cirrus,ts-inv = <1>;
+		sound-name-prefix = "Jack";
 	};
 };
 
 / {
 	sound {
-		compatible = "simple-audio-card";
-		simple-audio-card,name = "iMac integrated audio";
-		#address-cells = <1>;
-		#size-cells = <0>;
+		compatible = "apple,j457-macaudio", "apple,macaudio";
+		model = "iMac J457";
 
-		simple-audio-card,dai-link@0 {
-			bitclock-inversion;
-			frame-inversion;
-			reg = <0>;
-			format = "i2s";
-			mclk-fs = <64>;
-			tdm-slot-width = <32>;
+		dai-link@1 {
+			link-name = "Headphone Jack";
 
-			link0_cpu: cpu {
+			cpu {
 				sound-dai = <&mca 2>;
-				bitclock-master;
-				frame-master;
 			};
-
-			link0_codec: codec {
+			codec {
 				sound-dai = <&jack_codec>;
 			};
 		};
 	};
+};
+
+&gpu {
+	apple,perf-base-pstate = <3>;
+};
+
+#include "isp-imx364.dtsi"
+
+&isp {
+	apple,platform-id = <2>;
 };
