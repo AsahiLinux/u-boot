@@ -9,10 +9,9 @@
  * Copyright The Asahi Linux Contributors
  */
 
-#include <dt-bindings/spmi/spmi.h>
-
 / {
 	aliases {
+		bluetooth0 = &bluetooth0;
 		serial0 = &serial0;
 		serial2 = &serial2;
 		wifi0 = &wifi0;
@@ -123,7 +122,7 @@
  */
 &port00 {
 	bus-range = <1 1>;
-	pwren-gpios = <&smc 13 0>;
+	pwren-gpios = <&smc_gpio 13 GPIO_ACTIVE_HIGH>;
 	wifi0: network@0,0 {
 		compatible = "pci14e4,4425";
 		reg = <0x10000 0x0 0x0 0x0 0x0>;
@@ -131,13 +130,11 @@
 		local-mac-address = [00 00 00 00 00 00];
 		apple,antenna-sku = "XX";
 	};
-};
 
-&spmi {
-	status = "okay";
-
-	pmu@f {
-		compatible = "apple,sera-pmu";
-		reg = <0xf SPMI_USID>;
+	bluetooth0: network@0,1 {
+		compatible = "pci14e4,5f69";
+		reg = <0x10100 0x0 0x0 0x0 0x0>;
+		/* To be filled by the loader */
+		local-bd-address = [00 00 00 00 00 00];
 	};
 };
