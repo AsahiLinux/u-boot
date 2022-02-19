@@ -63,8 +63,6 @@
 /delete-node/ &port01;
 
 &i2c1 {
-	clock-frequency = <50000>;
-
 	jack_codec: codec@48 {
 		compatible = "cirrus,cs42l83", "cirrus,cs42l42";
 		reg = <0x48>;

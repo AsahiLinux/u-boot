@@ -57,20 +57,16 @@
 };
 
 &i2c1 {
-	clock-frequency = <50000>;
-
 	speaker_amp: codec@31 {
 		compatible = "ti,tas5770l", "ti,tas2770";
 		reg = <0x31>;
 		reset-gpios = <&pinctrl_ap 181 GPIO_ACTIVE_HIGH>;
 		#sound-dai-cells = <0>;
-	};
+	};	
 };
 
 &i2c2 {
 	status = "okay";
-
-	clock-frequency = <50000>;
 
 	jack_codec: codec@48 {
 		compatible = "cirrus,cs42l83", "cirrus,cs42l42";
@@ -93,7 +89,6 @@
 		simple-audio-card,dai-link@0 {
 			reg = <0>;
 			format = "left_j";
-			tdm-slot-width = <32>;
 			mclk-fs = <64>;
 
 			link0_cpu: cpu {
@@ -108,12 +103,11 @@
 		};
 
 		simple-audio-card,dai-link@1 {
+			reg = <1>;
 			bitclock-inversion;
 			frame-inversion;
-			reg = <1>;
 			format = "i2s";
 			mclk-fs = <64>;
-			tdm-slot-width = <32>;
 
 			link1_cpu: cpu {
 				sound-dai = <&mca 2>;
