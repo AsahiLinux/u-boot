@@ -70,7 +70,6 @@
 
 &i2c2 {
 	status = "okay";
-	clock-frequency = <50000>;
 
 	jack_codec: codec@48 {
 		compatible = "cirrus,cs42l83", "cirrus,cs42l42";
