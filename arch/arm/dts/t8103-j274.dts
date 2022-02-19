@@ -57,20 +57,16 @@
 };
 
 &i2c1 {
-	clock-frequency = <50000>;
-
 	speaker_amp: codec@31 {
 		compatible = "ti,tas5770l", "ti,tas2770";
 		reg = <0x31>;
-		reset-gpios = <&pinctrl_ap 181 GPIO_ACTIVE_HIGH>;
+		shutdown-gpios = <&pinctrl_ap 181 GPIO_ACTIVE_HIGH>;
 		#sound-dai-cells = <0>;
-	};
+	};	
 };
 
 &i2c2 {
 	status = "okay";
-
-	clock-frequency = <50000>;
 
 	jack_codec: codec@48 {
 		compatible = "cirrus,cs42l83", "cirrus,cs42l42";
@@ -80,50 +76,38 @@
 		interrupts = <183 IRQ_TYPE_LEVEL_LOW>;
 		#sound-dai-cells = <0>;
 		cirrus,ts-inv = <1>;
+		sound-name-prefix = "Jack";
 	};
 };
 
 / {
 	sound {
-		compatible = "simple-audio-card";
-		simple-audio-card,name = "Mac mini integrated audio";
-		#address-cells = <1>;
-		#size-cells = <0>;
+		compatible = "apple,j274-macaudio", "apple,macaudio";
+		model = "Mac mini J274 integrated audio";
 
-		simple-audio-card,dai-link@0 {
-			reg = <0>;
-			format = "left_j";
-			tdm-slot-width = <32>;
+		dai-link@0 {
+			link-name = "Speaker";
 			mclk-fs = <64>;
 
-			link0_cpu: cpu {
+			cpu {
 				sound-dai = <&mca 0>;
-				bitclock-master;
-				frame-master;
 			};
-
-			link0_codec: codec {
+			codec {
 				sound-dai = <&speaker_amp>;
 			};
 		};
 
-		simple-audio-card,dai-link@1 {
-			bitclock-inversion;
-			frame-inversion;
-			reg = <1>;
-			format = "i2s";
+		dai-link@1 {
+			link-name = "Headphone Jack";
 			mclk-fs = <64>;
-			tdm-slot-width = <32>;
 
-			link1_cpu: cpu {
+			cpu {
 				sound-dai = <&mca 2>;
-				bitclock-master;
-				frame-master;
 			};
-
-			link1_codec: codec {
+			codec {
 				sound-dai = <&jack_codec>;
 			};
 		};
+
 	};
 };

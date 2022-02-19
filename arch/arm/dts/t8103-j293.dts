@@ -68,9 +68,26 @@
 /delete-node/ &port01;
 /delete-node/ &port02;
 
+&i2c1 {
+	speaker_left_rear: codec@31 {
+		compatible = "ti,tas5770l", "ti,tas2770";
+		reg = <0x31>;
+		shutdown-gpios = <&pinctrl_ap 181 GPIO_ACTIVE_HIGH>;
+		#sound-dai-cells = <0>;
+		sound-name-prefix = "Left Rear";
+	};
+
+	speaker_left_front: codec@32 {
+		compatible = "ti,tas5770l", "ti,tas2770";
+		reg = <0x32>;
+		shutdown-gpios = <&pinctrl_ap 181 GPIO_ACTIVE_HIGH>;
+		#sound-dai-cells = <0>;
+		sound-name-prefix = "Left Front";
+	};
+};
+
 &i2c2 {
 	status = "okay";
-	clock-frequency = <50000>;
 
 	jack_codec: codec@48 {
 		compatible = "cirrus,cs42l83", "cirrus,cs42l42";
@@ -83,34 +100,75 @@
 	};
 };
 
+&i2c3 {
+	speaker_right_rear: codec@34 {
+		compatible = "ti,tas5770l", "ti,tas2770";
+		reg = <0x34>;
+		shutdown-gpios = <&pinctrl_ap 181 GPIO_ACTIVE_HIGH>;
+		#sound-dai-cells = <0>;
+		sound-name-prefix = "Right Rear";
+	};
+
+	speaker_right_front: codec@35 {
+		compatible = "ti,tas5770l", "ti,tas2770";
+		reg = <0x35>;
+		shutdown-gpios = <&pinctrl_ap 181 GPIO_ACTIVE_HIGH>;
+		#sound-dai-cells = <0>;
+		sound-name-prefix = "Right Front";
+	};
+};
+
 &i2c4 {
 	status = "okay";
 };
 
 / {
+	backlight: gpio-bl {
+		compatible = "gpio-backlight";
+		gpios = <&smc_gpio 18 GPIO_ACTIVE_HIGH>;
+		default-on;
+	};
+
 	sound {
-		compatible = "simple-audio-card";
-		simple-audio-card,name = "MacBook integrated audio";
-		#address-cells = <1>;
-		#size-cells = <0>;
+		compatible = "apple,j293-macaudio", "apple,macaudio";
+		model = "MacBook Pro J293 integrated audio";
 
-		simple-audio-card,dai-link@0 {
-			bitclock-inversion;
-			frame-inversion;
-			reg = <0>;
-			format = "i2s";
+		dai-link@0 {
+			/*
+			 * DANGER ZONE: You can blow your speakers!
+			 *
+			 * The drivers are not ready, and unless you are careful
+			 * to attenuate the audio stream, you run the risk of
+			 * blowing your speakers.
+			 */
+			status = "disabled";
+
+			link-name = "Speakers";
 			mclk-fs = <64>;
-			tdm-slot-width = <32>;
 
-			link0_cpu: cpu {
-				sound-dai = <&mca 2>;
-				bitclock-master;
-				frame-master;
+			cpu {
+				sound-dai = <&mca 0>, <&mca 1>;
 			};
+			codec {
+				sound-dai = <&speaker_left_front>, <&speaker_right_front>,
+					<&speaker_left_rear>, <&speaker_right_rear>;
+			};
+		};
 
-			link0_codec: codec {
+		dai-link@1 {
+			link-name = "Headphone Jack";
+			mclk-fs = <64>;
+
+			cpu {
+				sound-dai = <&mca 2>;
+			};
+			codec {
 				sound-dai = <&jack_codec>;
 			};
 		};
 	};
+};
+
+&framebuffer0 {
+	backlight = <&backlight>;
 };
