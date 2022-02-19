@@ -14,7 +14,7 @@
 
 / {
 	compatible = "apple,j457", "apple,t8103", "apple,arm-platform";
-	model = "Apple iMac (24-inch, 2x USB-C, M1, 2020)";
+	model = "Apple iMac (24-inch, 2x USB-C, M1, 2021)";
 
 	aliases {
 		ethernet0 = &ethernet0;
@@ -63,8 +63,6 @@
 /delete-node/ &port01;
 
 &i2c1 {
-	clock-frequency = <50000>;
-
 	jack_codec: codec@48 {
 		compatible = "cirrus,cs42l83", "cirrus,cs42l42";
 		reg = <0x48>;

@@ -483,7 +483,7 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "mca0";
-		power-domains = <&ps_audio_p>, <&ps_sio_adma>, <&ps_mca1>, <&ps_mca2>, <&ps_mca3>, <&ps_mca4>, <&ps_mca5>;
+		power-domains = <&ps_audio_p>, <&ps_sio_adma>;
 	};
 
 	ps_mca1: power-controller@2c0 {
@@ -717,6 +717,7 @@
 		#reset-cells = <0>;
 		label = "apcie_gp";
 		power-domains = <&ps_apcie>;
+		apple,always-on; /* Breaks things if shut down */
 	};
 
 	ps_ans2: power-controller@3f0 {
@@ -725,11 +726,6 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "ans2";
-		/*
-		 * The ADT makes ps_apcie_st depend on ps_ans2 instead, but this
-		 * doesn't make much sense since ANS2 uses APCIE_ST.
-		 */
-		power-domains = <&ps_apcie_st>;
 	};
 
 	ps_gfx: power-controller@3f8 {
@@ -836,7 +832,7 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "apcie_st";
-		power-domains = <&ps_apcie>;
+		power-domains = <&ps_apcie>, <&ps_ans2>;
 	};
 
 	ps_ane_sys: power-controller@470 {
@@ -1108,6 +1104,7 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "atc0_usb_aon";
+		apple,always-on; /* Needs to stay on for dwc3 to work */
 	};
 
 	ps_atc1_usb_aon: power-controller@90 {
@@ -1116,6 +1113,7 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = "atc1_usb_aon";
+		apple,always-on; /* Needs to stay on for dwc3 to work */
 	};
 
 	ps_atc0_usb: power-controller@98 {
