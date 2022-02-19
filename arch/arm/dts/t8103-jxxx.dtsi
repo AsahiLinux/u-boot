@@ -9,13 +9,18 @@
  * Copyright The Asahi Linux Contributors
  */
 
-#include <dt-bindings/spmi/spmi.h>
-
 / {
 	aliases {
+		bluetooth0 = &bluetooth0;
+		dcp = &dcp;
+		disp0 = &display;
+		disp0_piodma = &disp0_piodma;
+		nvram = &nvram;
 		serial0 = &serial0;
 		serial2 = &serial2;
 		wifi0 = &wifi0;
+		atcphy0 = &atcphy0;
+		atcphy1 = &atcphy1;
 	};
 
 	chosen {
@@ -28,9 +33,17 @@
 		framebuffer0: framebuffer@0 {
 			compatible = "apple,simple-framebuffer", "simple-framebuffer";
 			reg = <0 0 0 0>; /* To be filled by loader */
+			power-domains = <&ps_disp0_cpu0>;
 			/* Format properties will be added by loader */
 			status = "disabled";
 		};
+	};
+
+	reserved-memory {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+		/* To be filled by loader */
 	};
 
 	memory@800000000 {
@@ -69,6 +82,12 @@
 						remote-endpoint = <&typec0_usb_hs>;
 					};
 				};
+				port@1 {
+					reg = <1>;
+					typec0_con_ss: endpoint {
+						remote-endpoint = <&typec0_usb_ss>;
+					};
+				};
 			};
 		};
 	};
@@ -94,6 +113,12 @@
 						remote-endpoint = <&typec1_usb_hs>;
 					};
 				};
+				port@1 {
+					reg = <1>;
+					typec1_con_ss: endpoint {
+						remote-endpoint = <&typec1_usb_ss>;
+					};
+				};
 			};
 		};
 	};
@@ -116,6 +141,23 @@
 	};
 };
 
+/* Type-C PHYs */
+&atcphy0 {
+	port {
+		typec0_usb_ss: endpoint {
+			remote-endpoint = <&typec0_con_ss>;
+		};
+	};
+};
+
+&atcphy1 {
+	port {
+		typec1_usb_ss: endpoint {
+			remote-endpoint = <&typec1_con_ss>;
+		};
+	};
+};
+
 /*
  * Force the bus number assignments so that we can declare some of the
  * on-board devices and properties that are populated by the bootloader
@@ -123,7 +165,7 @@
  */
 &port00 {
 	bus-range = <1 1>;
-	pwren-gpios = <&smc 13 0>;
+	pwren-gpios = <&smc_gpio 13 GPIO_ACTIVE_HIGH>;
 	wifi0: network@0,0 {
 		compatible = "pci14e4,4425";
 		reg = <0x10000 0x0 0x0 0x0 0x0>;
@@ -131,13 +173,17 @@
 		local-mac-address = [00 00 00 00 00 00];
 		apple,antenna-sku = "XX";
 	};
-};
 
-&spmi {
-	status = "okay";
-
-	pmu@f {
-		compatible = "apple,sera-pmu";
-		reg = <0xf SPMI_USID>;
+	bluetooth0: bluetooth@0,1 {
+		compatible = "pci14e4,5f69";
+		reg = <0x10100 0x0 0x0 0x0 0x0>;
+		/* To be filled by the loader */
+		local-bd-address = [00 00 00 00 00 00];
 	};
 };
+
+&nco_clkref {
+	clock-frequency = <900000000>;
+};
+
+#include "spi1-nvram.dtsi"
