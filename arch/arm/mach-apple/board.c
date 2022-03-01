@@ -481,9 +481,11 @@ int ft_board_setup(void *blob, struct bd_info *bd)
 	if (current_el() == 1)
 		return 0;
 
+#if 0
 	ret = uclass_find_device(UCLASS_KEYBOARD, 0, &dev);
 	if (ret < 0)
 		return 0;
+#endif
 
 	stdoutname = env_get("stdout");
 	if (!stdoutname || !strstr(stdoutname, "vidconsole"))
