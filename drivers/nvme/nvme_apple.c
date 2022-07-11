@@ -206,6 +206,9 @@ static int apple_nvme_probe(struct udevice *dev)
 	if (ret < 0)
 		return ret;
 
+	reset_assert_bulk(&priv->resets);
+	reset_deassert_bulk(&priv->resets);
+
 	ret = mbox_get_by_index(dev, 0, &priv->chan);
 	if (ret < 0)
 		return ret;
