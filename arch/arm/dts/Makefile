@@ -43,7 +43,9 @@ dtb-$(CONFIG_ARCH_APPLE) += \
 	t8103-j293.dtb \
 	t8103-j313.dtb \
 	t8103-j456.dtb \
-	t8103-j457.dtb
+	t8103-j457.dtb \
+	t8112-j413.dtb \
+	t8112-j493.dtb
 
 dtb-$(CONFIG_ARCH_DAVINCI) += \
 	da850-evm.dtb \
