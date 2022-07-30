@@ -10,6 +10,7 @@ obj-$(CONFIG_BUTTON_KEYBOARD) += button_kbd.o
 
 ifndef CONFIG_SPL_BUILD
 
+obj-$(CONFIG_APPLE_KEYB) += apple_kbd.o
 obj-$(CONFIG_APPLE_SPI_KEYB) += apple_spi_kbd.o
 obj-$(CONFIG_I8042_KEYB) += i8042.o
 obj-$(CONFIG_TEGRA_KEYBOARD) += input.o tegra-kbc.o
