@@ -38,8 +38,13 @@ config TPL_DM_KEYBOARD
 	  includes methods to start/stop the device, check for available
 	  input and update LEDs if the keyboard has them.
 
+config APPLE_KEYB
+	bool
+	depends on DM_KEYBOARD
+
 config APPLE_SPI_KEYB
 	bool "Enable Apple SPI keyboard support"
+	select APPLE_KEYB
 	depends on DM_KEYBOARD && DM_SPI
 	help
 	  This adds a driver for the keyboards found on various
