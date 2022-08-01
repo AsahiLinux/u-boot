@@ -5,7 +5,7 @@
 
 /* Environment */
 #define ENV_DEVICE_SETTINGS \
-	"stdin=serial,usbkbd,spikbd\0" \
+	"stdin=serial,usbkbd,spikbd,mtpkbd\0" \
 	"stdout=vidconsole,serial\0" \
 	"stderr=vidconsole,serial\0"
 
