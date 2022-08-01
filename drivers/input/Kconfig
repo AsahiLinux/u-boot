@@ -67,6 +67,15 @@ config CPCAP_POWER_BUTTON
 	help
 	  Enable support for a dedicated power button of the CPCAP PMIC.
 
+config APPLE_MTP_KEYB
+	bool "Enable Apple MTP keyboard support"
+	select APPLE_KEYB
+	depends on DM_KEYBOARD && MISC
+	help
+	  This adds a driver for the keyboards found on various
+	  laptops based on Apple M2 and newer SoCs. These keyboards use an
+	  Apple-specific HID-over-DockChannel protocol.
+
 config CROS_EC_KEYB
 	bool "Enable Chrome OS EC keyboard support"
 	depends on INPUT && CROS_EC
