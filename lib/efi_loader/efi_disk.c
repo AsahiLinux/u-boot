@@ -523,6 +523,27 @@ static efi_status_t efi_disk_add_dev(
 				  desc->devnum, part);
 		}
 	}
+
+	ofnode chosen_node;
+	const char *uuid = NULL;
+	chosen_node = ofnode_path("/chosen");
+	if (ofnode_valid(chosen_node)) {
+		uuid = ofnode_read_string(chosen_node,
+					  "asahi,efi-system-partition");
+	}
+
+	/* Store designated EFI system partition */
+	if (part && uuid && strcmp(uuid, part_info->uuid) == 0) {
+		if (part_info->bootable & PART_EFI_SYSTEM_PARTITION) {
+			efi_system_partition.uclass_id = desc->uclass_id;
+			efi_system_partition.devnum = desc->devnum;
+			efi_system_partition.part = part;
+			EFI_PRINT("EFI system partition: %s %x:%x\n",
+				  blk_get_uclass_name(desc->uclass_id),
+				  desc->devnum, part);
+		}
+	}
+
 	return EFI_SUCCESS;
 error:
 	efi_delete_handle(&diskobj->header);
