@@ -70,6 +70,13 @@ config AB8500_USB_PHY
 	help
 	  Support for the USB OTG PHY in ST-Ericsson AB8500.
 
+config APPLE_ATCPHY
+       bool "Apple Type-C PHY Driver"
+       depends on PHY && ARCH_APPLE
+       default y
+       help
+         Support for the Apple Type-C PHY.
+
 config BCM6318_USBH_PHY
 	bool "BCM6318 USBH PHY support"
 	depends on PHY && ARCH_BMIPS
