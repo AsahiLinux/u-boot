@@ -163,28 +163,39 @@
 		"fi\0"                                                    \
 	\
 	"load_efi_dtb="                                                   \
-		"load ${devtype} ${devnum}:${distro_bootpart} "           \
-			"${fdt_addr_r} ${prefix}${efi_fdtfile}\0"         \
+		"load ${devtype} ${devnum}:${dtb_devp} "                  \
+			"${fdt_addr_r} ${prefix}${efi_fdtfile} && "       \
+		"run boot_efi_binary\0"                                   \
 	\
 	"efi_dtb_prefixes=/ /dtb/ /dtb/current/\0"                        \
-	"scan_dev_for_efi="                                               \
+	"scan_dev_for_dtb="                                               \
 		"setenv efi_fdtfile ${fdtfile}; "                         \
 		BOOTENV_EFI_SET_FDTFILE_FALLBACK                          \
 		BOOTENV_RUN_EXTENSION_INIT                                \
-		"for prefix in ${efi_dtb_prefixes}; do "                  \
-			"if test -e ${devtype} "                          \
-					"${devnum}:${distro_bootpart} "   \
-					"${prefix}${efi_fdtfile}; then "  \
-				"run load_efi_dtb; "                      \
-				BOOTENV_RUN_EXTENSION_APPLY               \
-			"fi;"                                             \
-		"done;"                                                   \
-		"run boot_efi_bootmgr;"                                   \
+		"part list ${devtype} ${devnum} dtb_devplist; "           \
+		"env exists dtb_devplist || setenv dtb_devplist "         \
+			"${distro_bootpart}; "                            \
+		"for dtb_devp in ${dtb_devplist}; do "                    \
+			"for prefix in ${efi_dtb_prefixes}; do "          \
+				"if test -e ${devtype} "                  \
+						"${devnum}:${dtb_devp} "  \
+						"${prefix}${efi_fdtfile};"\
+						" then "                  \
+					"echo Found DTB ${devtype} "      \
+						"${devnum}:${dtb_devp} "  \
+						"${prefix}${efi_fdtfile};"\
+					"run load_efi_dtb; "              \
+					BOOTENV_RUN_EXTENSION_APPLY       \
+				"fi;"                                     \
+			"done; "                                          \
+		"done; "                                                  \
+		"run boot_efi_binary\0"                                   \
+	"scan_dev_for_efi="                                               \
 		"if test -e ${devtype} ${devnum}:${distro_bootpart} "     \
 					"efi/boot/"BOOTEFI_NAME"; then "  \
 				"echo Found EFI removable media binary "  \
 					"efi/boot/"BOOTEFI_NAME"; "       \
-				"run boot_efi_binary; "                   \
+				"run scan_dev_for_dtb; "                  \
 				"echo EFI LOAD FAILED: continuing...; "   \
 		"fi; "                                                    \
 		"setenv efi_fdtfile\0"
