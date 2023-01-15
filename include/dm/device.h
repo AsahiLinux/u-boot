@@ -194,6 +194,9 @@ struct udevice {
 #if CONFIG_IS_ENABLED(DM_DMA)
 	ulong dma_offset;
 #endif
+#if CONFIG_IS_ENABLED(IOMMU)
+	struct udevice *iommu;
+#endif
 };
 
 static inline int dm_udevice_size(void)
