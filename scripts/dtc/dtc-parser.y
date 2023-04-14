@@ -59,6 +59,7 @@ static bool is_ref_relative(const char *ref)
 	struct node *nodelist;
 	struct reserve_info *re;
 	uint64_t integer;
+	double floating;
 	unsigned int flags;
 }
 
@@ -72,6 +73,7 @@ static bool is_ref_relative(const char *ref)
 %token DT_OMIT_NO_REF
 %token <propnodename> DT_PROPNODENAME
 %token <integer> DT_LITERAL
+%token <floating> DT_FP_LITERAL
 %token <integer> DT_CHAR_LITERAL
 %token <byte> DT_BYTE
 %token <data> DT_STRING
@@ -95,6 +97,7 @@ static bool is_ref_relative(const char *ref)
 %type <node> subnode
 %type <nodelist> subnodes
 
+%type <floating> floating_prim
 %type <integer> integer_prim
 %type <integer> integer_unary
 %type <integer> integer_mul
@@ -371,6 +374,15 @@ arrayprefix:
 			$$.data = empty_data;
 			$$.bits = 32;
 		}
+	| arrayprefix floating_prim
+		{
+			if ($1.bits < 32) {
+				ERROR(&@2, "Floating-point values must be"
+				      " 32-bit or 64-bit");
+			}
+
+			$$.data = data_append_float($1.data, $2, $1.bits);
+		}
 	| arrayprefix integer_prim
 		{
 			if ($1.bits < 64) {
@@ -408,6 +420,10 @@ arrayprefix:
 		{
 			$$.data = data_add_marker($1.data, LABEL, $2);
 		}
+	;
+
+floating_prim:
+	DT_FP_LITERAL
 	;
 
 integer_prim:
