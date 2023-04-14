@@ -11,14 +11,18 @@
 #include <dt-bindings/interrupt-controller/apple-aic.h>
 #include <dt-bindings/interrupt-controller/irq.h>
 #include <dt-bindings/pinctrl/apple.h>
-#include <dt-bindings/phy/phy.h>
 #include <dt-bindings/spmi/spmi.h>
+#include <dt-bindings/phy/phy.h>
 
 / {
 	compatible = "apple,t8103", "apple,arm-platform";
 
 	#address-cells = <2>;
 	#size-cells = <2>;
+
+	aliases {
+		gpu = &gpu;
+	};
 
 	cpus {
 		#address-cells = <2>;
@@ -65,6 +69,9 @@
 			operating-points-v2 = <&ecluster_opp>;
 			capacity-dmips-mhz = <714>;
 			performance-domains = <&cpufreq_e>;
+			next-level-cache = <&l2_cache_0>;
+			i-cache-size = <0x20000>;
+			d-cache-size = <0x10000>;
 		};
 
 		cpu_e1: cpu@1 {
@@ -76,6 +83,9 @@
 			operating-points-v2 = <&ecluster_opp>;
 			capacity-dmips-mhz = <714>;
 			performance-domains = <&cpufreq_e>;
+			next-level-cache = <&l2_cache_0>;
+			i-cache-size = <0x20000>;
+			d-cache-size = <0x10000>;
 		};
 
 		cpu_e2: cpu@2 {
@@ -87,6 +97,9 @@
 			operating-points-v2 = <&ecluster_opp>;
 			capacity-dmips-mhz = <714>;
 			performance-domains = <&cpufreq_e>;
+			next-level-cache = <&l2_cache_0>;
+			i-cache-size = <0x20000>;
+			d-cache-size = <0x10000>;
 		};
 
 		cpu_e3: cpu@3 {
@@ -98,6 +111,9 @@
 			operating-points-v2 = <&ecluster_opp>;
 			capacity-dmips-mhz = <714>;
 			performance-domains = <&cpufreq_e>;
+			next-level-cache = <&l2_cache_0>;
+			i-cache-size = <0x20000>;
+			d-cache-size = <0x10000>;
 		};
 
 		cpu_p0: cpu@10100 {
@@ -109,6 +125,9 @@
 			operating-points-v2 = <&pcluster_opp>;
 			capacity-dmips-mhz = <1024>;
 			performance-domains = <&cpufreq_p>;
+			next-level-cache = <&l2_cache_1>;
+			i-cache-size = <0x30000>;
+			d-cache-size = <0x20000>;
 		};
 
 		cpu_p1: cpu@10101 {
@@ -120,6 +139,9 @@
 			operating-points-v2 = <&pcluster_opp>;
 			capacity-dmips-mhz = <1024>;
 			performance-domains = <&cpufreq_p>;
+			next-level-cache = <&l2_cache_1>;
+			i-cache-size = <0x30000>;
+			d-cache-size = <0x20000>;
 		};
 
 		cpu_p2: cpu@10102 {
@@ -131,6 +153,9 @@
 			operating-points-v2 = <&pcluster_opp>;
 			capacity-dmips-mhz = <1024>;
 			performance-domains = <&cpufreq_p>;
+			next-level-cache = <&l2_cache_1>;
+			i-cache-size = <0x30000>;
+			d-cache-size = <0x20000>;
 		};
 
 		cpu_p3: cpu@10103 {
@@ -142,12 +167,28 @@
 			operating-points-v2 = <&pcluster_opp>;
 			capacity-dmips-mhz = <1024>;
 			performance-domains = <&cpufreq_p>;
+			next-level-cache = <&l2_cache_1>;
+			i-cache-size = <0x30000>;
+			d-cache-size = <0x20000>;
+		};
+
+		l2_cache_0: l2-cache-0 {
+			compatible = "cache";
+			cache-level = <2>;
+			cache-unified;
+			cache-size = <0x400000>;
+		};
+
+		l2_cache_1: l2-cache-1 {
+			compatible = "cache";
+			cache-level = <2>;
+			cache-unified;
+			cache-size = <0xc00000>;
 		};
 	};
 
 	ecluster_opp: opp-table-0 {
 		compatible = "operating-points-v2";
-		opp-shared;
 
 		opp01 {
 			opp-hz = /bits/ 64 <600000000>;
@@ -178,7 +219,6 @@
 
 	pcluster_opp: opp-table-1 {
 		compatible = "operating-points-v2";
-		opp-shared;
 
 		opp01 {
 			opp-hz = /bits/ 64 <600000000>;
@@ -263,6 +303,50 @@
 #endif
 	};
 
+	gpu_opp: opp-table-gpu {
+		compatible = "operating-points-v2";
+
+		/*
+		 * NOTE: The voltage and power values are device-specific and
+		 * must be filled in by the bootloader.
+		 */
+		opp00 {
+			opp-hz = /bits/ 64 <0>;
+			opp-microvolt = <400000>;
+			opp-microwatt = <0>;
+		};
+		opp01 {
+			opp-hz = /bits/ 64 <396000000>;
+			opp-microvolt = <603000>;
+			opp-microwatt = <3714690>;
+		};
+		opp02 {
+			opp-hz = /bits/ 64 <528000000>;
+			opp-microvolt = <640000>;
+			opp-microwatt = <5083260>;
+		};
+		opp03 {
+			opp-hz = /bits/ 64 <720000000>;
+			opp-microvolt = <690000>;
+			opp-microwatt = <7429380>;
+		};
+		opp04 {
+			opp-hz = /bits/ 64 <924000000>;
+			opp-microvolt = <784000>;
+			opp-microwatt = <11730600>;
+		};
+		opp05 {
+			opp-hz = /bits/ 64 <1128000000>;
+			opp-microvolt = <862000>;
+			opp-microwatt = <17009370>;
+		};
+		opp06 {
+			opp-hz = /bits/ 64 <1278000000>;
+			opp-microvolt = <931000>;
+			opp-microwatt = <19551000>;
+		};
+	};
+
 	timer {
 		compatible = "arm,armv8-timer";
 		interrupt-parent = <&aic>;
@@ -299,6 +383,13 @@
 		clock-output-names = "clk_120m";
 	};
 
+	clk_200m: clock-200m {
+		compatible = "fixed-clock";
+		#clock-cells = <0>;
+		clock-frequency = <200000000>;
+		clock-output-names = "clk_200m";
+	};
+
 	/* Pixel clock? frequency in Hz (compare: 4K@60 VGA clock 533.250 MHz) */
 	clk_disp0: clock-disp0 {
 		compatible = "fixed-clock";
@@ -317,6 +408,27 @@
 		clock-output-names = "nco_ref";
 	};
 
+	reserved-memory {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+
+		uat_handoff: uat-handoff {
+			reg = <0x9 0xfff74000 0 0x4000>;
+			no-map;
+		};
+
+		uat_pagetables: uat-pagetables {
+			reg = <0x9 0xfff78000 0 0x40000>;
+			no-map;
+		};
+
+		uat_ttbs: uat-ttbs {
+			reg = <0x9 0xfffb8000 0 0x4000>;
+			no-map;
+		};
+	};
+
 	soc {
 		compatible = "simple-bus";
 		#address-cells = <2>;
@@ -324,14 +436,80 @@
 
 		ranges;
 		nonposted-mmio;
+		/* Required to get >32-bit DMA via DARTs */
+		dma-ranges = <0 0 0 0 0xffffffff 0xffffc000>;
 
-		cpufreq_e: cpufreq@210e20000 {
+		gpu: gpu@206400000 {
+			compatible = "apple,agx-t8103", "apple,agx-g13g";
+			reg = <0x2 0x6400000 0 0x40000>,
+				<0x2 0x4000000 0 0x1000000>;
+			reg-names = "asc", "sgx";
+			interrupt-parent = <&aic>;
+			interrupts = <AIC_IRQ 563 IRQ_TYPE_LEVEL_HIGH>,
+				<AIC_IRQ 564 IRQ_TYPE_LEVEL_HIGH>,
+				<AIC_IRQ 565 IRQ_TYPE_LEVEL_HIGH>,
+				<AIC_IRQ 566 IRQ_TYPE_LEVEL_HIGH>,
+				<AIC_IRQ 579 IRQ_TYPE_LEVEL_HIGH>;
+			mboxes = <&agx_mbox>;
+			power-domains = <&ps_gfx>;
+			memory-region = <&uat_ttbs>, <&uat_pagetables>, <&uat_handoff>;
+			memory-region-names = "ttbs", "pagetables", "handoff";
+
+			apple,firmware-version = <12 3 0>;
+			apple,firmware-compat = <12 3 0>;
+
+			operating-points-v2 = <&gpu_opp>;
+			apple,perf-base-pstate = <1>;
+			apple,min-sram-microvolt = <850000>;
+			apple,avg-power-filter-tc-ms = <1000>;
+			apple,avg-power-ki-only = <7.5>;
+			apple,avg-power-kp = <4.0>;
+			apple,avg-power-min-duty-cycle = <40>;
+			apple,avg-power-target-filter-tc = <125>;
+			apple,fast-die0-integral-gain = <200.0>;
+			apple,fast-die0-proportional-gain = <5.0>;
+			apple,perf-filter-drop-threshold = <0>;
+			apple,perf-filter-time-constant = <5>;
+			apple,perf-filter-time-constant2 = <50>;
+			apple,perf-integral-gain2 = <0.197392>;
+			apple,perf-integral-min-clamp = <0>;
+			apple,perf-proportional-gain2 = <6.853981>;
+			apple,perf-tgt-utilization = <85>;
+			apple,power-sample-period = <8>;
+			apple,power-zones = <30000 100 6875>;
+			apple,ppm-filter-time-constant-ms = <100>;
+			apple,ppm-ki = <91.5>;
+			apple,ppm-kp = <6.9>;
+			apple,pwr-filter-time-constant = <313>;
+			apple,pwr-integral-gain = <0.0202129>;
+			apple,pwr-integral-min-clamp = <0>;
+			apple,pwr-min-duty-cycle = <40>;
+			apple,pwr-proportional-gain = <5.2831855>;
+
+			apple,core-leak-coef = <1000.0>;
+			apple,sram-leak-coef = <45.0>;
+		};
+
+		agx_mbox: mbox@206408000 {
+			compatible = "apple,t8103-asc-mailbox", "apple,asc-mailbox-v4";
+			reg = <0x2 0x6408000 0x0 0x4000>;
+			interrupt-parent = <&aic>;
+			interrupts = <AIC_IRQ 575 IRQ_TYPE_LEVEL_HIGH>,
+				<AIC_IRQ 576 IRQ_TYPE_LEVEL_HIGH>,
+				<AIC_IRQ 577 IRQ_TYPE_LEVEL_HIGH>,
+				<AIC_IRQ 578 IRQ_TYPE_LEVEL_HIGH>;
+			interrupt-names = "send-empty", "send-not-empty",
+				"recv-empty", "recv-not-empty";
+			#mbox-cells = <0>;
+		};
+
+		cpufreq_e: performance-controller@210e20000 {
 			compatible = "apple,t8103-cluster-cpufreq", "apple,cluster-cpufreq";
 			reg = <0x2 0x10e20000 0 0x1000>;
 			#performance-domain-cells = <0>;
 		};
 
-		cpufreq_p: cpufreq@211e20000 {
+		cpufreq_p: performance-controller@211e20000 {
 			compatible = "apple,t8103-cluster-cpufreq", "apple,cluster-cpufreq";
 			reg = <0x2 0x11e20000 0 0x1000>;
 			#performance-domain-cells = <0>;
@@ -348,6 +526,7 @@
 			#iommu-cells = <1>;
 			interrupt-parent = <&aic>;
 			interrupts = <AIC_IRQ 445 IRQ_TYPE_LEVEL_HIGH>;
+			power-domains = <&ps_disp0_cpu0>;
 			status = "disabled";
 		};
 
@@ -357,6 +536,7 @@
 			#iommu-cells = <1>;
 			interrupt-parent = <&aic>;
 			interrupts = <AIC_IRQ 445 IRQ_TYPE_LEVEL_HIGH>;
+			power-domains = <&ps_disp0_cpu0>;
 		};
 
 		dcp_mbox: mbox@231c08000 {
@@ -391,20 +571,21 @@
 				<0x2 0x3b738000 0x0 0x1000>,
 				<0x2 0x3bc3c000 0x0 0x1000>;
 			power-domains = <&ps_disp0_cpu0>;
+			resets = <&ps_disp0_cpu0>;
 			clocks = <&clk_disp0>;
 			apple,asc-dram-mask = <0xf 0x00000000>;
 			apple,piodma-mapper = <&disp0_piodma>;
+			phandle = <&dcp>;
 		};
 
 		display: display-subsystem {
 			compatible = "apple,display-subsystem";
 			iommus = <&disp0_dart 0>;
-			apple,coprocessors = <&dcp>;
 			/* generate phandle explicitly for use in loader */
 			phandle = <&display>;
 		};
 
-		dart_sio: iommu@235004000 {
+		sio_dart: iommu@235004000 {
 			compatible = "apple,t8103-dart";
 			reg = <0x2 0x35004000 0x0 0x4000>;
 			interrupt-parent = <&aic>;
@@ -480,6 +661,38 @@
 			status = "disabled"; /* only used in J293 */
 		};
 
+		spi1: spi@235104000 {
+			compatible = "apple,t8103-spi", "apple,spi";
+			reg = <0x2 0x35104000 0x0 0x4000>;
+			interrupt-parent = <&aic>;
+			interrupts = <AIC_IRQ 615 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&clk_200m>;
+			pinctrl-0 = <&spi1_pins>;
+			pinctrl-names = "default";
+			power-domains = <&ps_spi1>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			flash@0 {
+				compatible = "jedec,spi-nor";
+				reg = <0x0>;
+				spi-max-frequency = <25000000>;
+				#address-cells = <1>;
+				#size-cells = <1>;
+
+				partitions {
+					compatible = "fixed-partitions";
+					#address-cells = <1>;
+					#size-cells = <1>;
+
+					partition@700000 {
+						label = "nvram";
+						reg = <0x700000 0x20000>;
+					};
+				};
+			};
+		};
+
 		spi3: spi@23510c000 {
 			compatible = "apple,t8103-spi", "apple,spi";
 			reg = <0x2 0x3510c000 0x0 0x4000>;
@@ -540,7 +753,7 @@
 					      <0>,
 					      <0>;
 			#dma-cells = <1>;
-			iommus = <&dart_sio 2>;
+			iommus = <&sio_dart 2>;
 			power-domains = <&ps_sio_adma>;
 			resets = <&ps_audio_p>;
 		};
@@ -657,6 +870,13 @@
 			i2c4_pins: i2c4-pins {
 				pinmux = <APPLE_PINMUX(135, 1)>,
 					 <APPLE_PINMUX(134, 1)>;
+			};
+
+			spi1_pins: spi1-pins {
+				pinmux = <APPLE_PINMUX(42, 1)>,
+					<APPLE_PINMUX(43, 1)>,
+					<APPLE_PINMUX(44, 1)>,
+					<APPLE_PINMUX(45, 1)>;
 			};
 
 			spi3_pins: spi3-pins {
@@ -1067,6 +1287,7 @@
 
 			orientation-switch;
 			mode-switch;
+			svid = <0xff01>, <0x8087>;
 			power-domains = <&ps_atc0_usb>;
 		};
 
@@ -1139,10 +1360,11 @@
 
 			orientation-switch;
 			mode-switch;
+			svid = <0xff01>, <0x8087>;
 			power-domains = <&ps_atc1_usb>;
 		};
 
-		pcie0_dart_0: dart@681008000 {
+		pcie0_dart_0: iommu@681008000 {
 			compatible = "apple,t8103-dart";
 			reg = <0x6 0x81008000 0x0 0x4000>;
 			#iommu-cells = <1>;
@@ -1151,22 +1373,24 @@
 			power-domains = <&ps_apcie_gp>;
 		};
 
-		pcie0_dart_1: dart@682008000 {
+		pcie0_dart_1: iommu@682008000 {
 			compatible = "apple,t8103-dart";
 			reg = <0x6 0x82008000 0x0 0x4000>;
 			#iommu-cells = <1>;
 			interrupt-parent = <&aic>;
 			interrupts = <AIC_IRQ 699 IRQ_TYPE_LEVEL_HIGH>;
 			power-domains = <&ps_apcie_gp>;
+			status = "disabled";
 		};
 
-		pcie0_dart_2: dart@683008000 {
+		pcie0_dart_2: iommu@683008000 {
 			compatible = "apple,t8103-dart";
 			reg = <0x6 0x83008000 0x0 0x4000>;
 			#iommu-cells = <1>;
 			interrupt-parent = <&aic>;
 			interrupts = <AIC_IRQ 702 IRQ_TYPE_LEVEL_HIGH>;
 			power-domains = <&ps_apcie_gp>;
+			status = "disabled";
 		};
 
 		pcie0: pcie@690000000 {
@@ -1241,6 +1465,7 @@
 						<0 0 0 2 &port01 0 0 0 1>,
 						<0 0 0 3 &port01 0 0 0 2>,
 						<0 0 0 4 &port01 0 0 0 3>;
+				status = "disabled";
 			};
 
 			port02: pci@2,0 {
@@ -1260,6 +1485,7 @@
 						<0 0 0 2 &port02 0 0 0 1>,
 						<0 0 0 3 &port02 0 0 0 2>,
 						<0 0 0 4 &port02 0 0 0 3>;
+				status = "disabled";
 			};
 		};
 	};

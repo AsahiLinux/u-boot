@@ -32,6 +32,7 @@
 		framebuffer0: framebuffer@0 {
 			compatible = "apple,simple-framebuffer", "simple-framebuffer";
 			reg = <0 0 0 0>; /* To be filled by loader */
+			power-domains = <&ps_disp0_cpu0>;
 			/* Format properties will be added by loader */
 			status = "disabled";
 		};
@@ -172,7 +173,7 @@
 		apple,antenna-sku = "XX";
 	};
 
-	bluetooth0: network@0,1 {
+	bluetooth0: bluetooth@0,1 {
 		compatible = "pci14e4,5f69";
 		reg = <0x10100 0x0 0x0 0x0 0x0>;
 		/* To be filled by the loader */

@@ -21,15 +21,17 @@
 &dcp {
 	panel: panel {
 		compatible = "apple,panel-j293", "apple,panel";
+		width-mm = <286>;
+		height-mm = <179>;
 		apple,max-brightness = <525>;
 	};
 };
 
-&wifi0 {
+&bluetooth0 {
 	brcm,board-type = "apple,honshu";
 };
 
-&bluetooth0 {
+&wifi0 {
 	brcm,board-type = "apple,honshu";
 };
 
@@ -53,32 +55,18 @@
 		reg = <0>;
 		spi-max-frequency = <8000000>;
 		/*
-		 * cs-setup and cs-hold delays are derived from Apple's ADT
-		 * Mac OS driver meta data secify 45 us for 'cs to clock' and
-		 * 'clock to cs' delays.
+		 * Apple's ADT specifies 20us CS change delays, and the
+		 * SPI HID interface metadata specifies 45us. Using either
+		 * seems not to be reliable, but adding both works, so
+		 * best guess is they are cumulative.
 		 */
-		spi-cs-setup-delay-ns = <20000>;
-		spi-cs-hold-delay-ns = <20000>;
+		spi-cs-setup-delay-ns = <65000>;
+		spi-cs-hold-delay-ns = <65000>;
 		spi-cs-inactive-delay-ns = <250000>;
 		spien-gpios = <&pinctrl_ap 195 0>;
 		interrupts-extended = <&pinctrl_nub 13 IRQ_TYPE_LEVEL_LOW>;
 	};
 };
-
-/*
- * Remove unused PCIe ports and disable the associated DARTs.
- */
-
-&pcie0_dart_1 {
-	status = "disabled";
-};
-
-&pcie0_dart_2 {
-	status = "disabled";
-};
-
-/delete-node/ &port01;
-/delete-node/ &port02;
 
 &i2c1 {
 	speaker_left_rear: codec@31 {

@@ -24,15 +24,17 @@
 &dcp {
 	panel: panel {
 		compatible = "apple,panel-j457", "apple,panel";
+		width-mm = <522>;
+		height-mm = <294>;
 		apple,max-brightness = <525>;
 	};
 };
 
-&wifi0 {
+&bluetooth0 {
 	brcm,board-type = "apple,santorini";
 };
 
-&bluetooth0 {
+&wifi0 {
 	brcm,board-type = "apple,santorini";
 };
 
@@ -56,6 +58,7 @@
 
 &port02 {
 	bus-range = <3 3>;
+	status = "okay";
 	ethernet0: ethernet@0,0 {
 		reg = <0x30000 0x0 0x0 0x0 0x0>;
 		/* To be filled by the loader */
@@ -63,15 +66,9 @@
 	};
 };
 
-/*
- * Remove unused PCIe port and disable the associated DART.
- */
-
-&pcie0_dart_1 {
-	status = "disabled";
+&pcie0_dart_2 {
+	status = "okay";
 };
-
-/delete-node/ &port01;
 
 &i2c1 {
 	jack_codec: codec@48 {
@@ -82,6 +79,7 @@
 		interrupts = <183 IRQ_TYPE_LEVEL_LOW>;
 		#sound-dai-cells = <0>;
 		cirrus,ts-inv = <1>;
+		sound-name-prefix = "Jack";
 	};
 };
 
@@ -101,4 +99,8 @@
 			};
 		};
 	};
+};
+
+&gpu {
+	apple,perf-base-pstate = <3>;
 };
