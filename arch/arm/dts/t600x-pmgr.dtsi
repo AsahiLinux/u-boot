@@ -225,7 +225,7 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = DIE_LABEL(afr);
-		/* Apple Fabric, media DIE_NODE(stuff): this can power down */
+		/* Apple Fabric, media stuff: this can power down */
 	};
 
 	DIE_NODE(ps_afnc1_ioa): power-controller@1f0 {
@@ -1293,7 +1293,6 @@
 		#reset-cells = <0>;
 		label = DIE_LABEL(disp0_fe);
 		power-domains = <&DIE_NODE(ps_afnc2_lw0)>;
-		apple,always-on; /* TODO: figure out if we can enable PM here */
 	};
 
 	DIE_NODE(ps_disp0_cpu0): power-controller@350 {
@@ -1303,7 +1302,7 @@
 		#reset-cells = <0>;
 		label = DIE_LABEL(disp0_cpu0);
 		power-domains = <&DIE_NODE(ps_disp0_fe)>;
-		apple,always-on; /* TODO: figure out if we can enable PM here */
+		apple,always-on;
 		apple,min-state = <4>;
 	};
 
@@ -1392,6 +1391,8 @@
 		 * This makes more sense anyway (since ANS2 uses APCIE_ST).
 		 */
 		power-domains = <&DIE_NODE(ps_afnc2_lw0)>;
+		apple,always-on; /* HACK: We need a proper solution for deferred dependencies. */
+
 	};
 
 	DIE_NODE(ps_gfx): power-controller@3c0 {

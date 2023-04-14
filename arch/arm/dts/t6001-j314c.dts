@@ -27,6 +27,9 @@
 
 &panel {
 	compatible = "apple,panel-j314", "apple,panel-mini-led", "apple,panel";
+	width-mm = <302>;
+	height-mm = <196>;
+	adj-height-mm = <189>;
 };
 
 &sound {

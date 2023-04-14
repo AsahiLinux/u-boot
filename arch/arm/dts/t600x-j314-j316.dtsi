@@ -38,6 +38,7 @@
 			/* Format properties will be added by loader */
 			backlight = <&backlight>;
 			status = "disabled";
+			power-domains = <&ps_disp0_cpu0>;
 		};
 	};
 
@@ -251,18 +252,30 @@
 	clock-frequency = <1068000000>;
 };
 
+#ifndef NO_NOR
 &spi1 {
-	status = "disabled";
-
 	flash@0 {
 		compatible = "jedec,spi-nor";
 		reg = <0x0>;
 		spi-max-frequency = <25000000>;
 		#address-cells = <1>;
 		#size-cells = <1>;
+
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			partition@700000 {
+				label = "nvram";
+				reg = <0x700000 0x20000>;
+			};
+		};
 	};
 };
+#endif
 
+#ifndef NO_SPI_TRACKPAD
 &spi3 {
 	status = "okay";
 
@@ -270,18 +283,20 @@
 		compatible = "apple,spi-hid-transport";
 		reg = <0>;
 		spi-max-frequency = <8000000>;
-                /*
-                 * cs-setup and cs-hold delays are derived from Apple's ADT
-                 * Mac OS driver meta data secify 45 us for 'cs to clock' and
-                 * 'clock to cs' delays.
-                 */
-		spi-cs-setup-delay-ns = <20000>;
-		spi-cs-hold-delay-ns = <20000>;
+		/*
+		 * Apple's ADT specifies 20us CS change delays, and the
+		 * SPI HID interface metadata specifies 45us. Using either
+		 * seems not to be reliable, but adding both works, so
+		 * best guess is they are cumulative.
+		*/
+		spi-cs-setup-delay-ns = <65000>;
+		spi-cs-hold-delay-ns = <65000>;
 		spi-cs-inactive-delay-ns = <250000>;
 		spien-gpios = <&pinctrl_ap 194 0>;
 		interrupts-extended = <&pinctrl_nub 6 IRQ_TYPE_LEVEL_LOW>;
 	};
 };
+#endif
 
 /* PCIe devices */
 &port00 {
@@ -308,6 +323,7 @@
 	/* SD card reader */
 	bus-range = <2 2>;
 	pwren-gpios = <&smc_gpio 26 GPIO_ACTIVE_HIGH>;
+	status = "okay";
 	sdhci0: mmc@0,0 {
 		compatible = "pci17a0,9755";
 		reg = <0x20000 0x0 0x0 0x0 0x0>;
@@ -316,16 +332,9 @@
 	};
 };
 
-&pcie0_dart_2 {
-	status = "disabled";
+&pcie0_dart_1 {
+	status = "okay";
 };
-
-&pcie0_dart_3 {
-	status = "disabled";
-};
-
-/delete-node/ &port02;
-/delete-node/ &port03;
 
 /* USB controllers */
 &dwc3_0 {
@@ -388,6 +397,10 @@
 
 &dwc3_3 {
 	status = "disabled";
+};
+
+&ps_atc3_usb_aon {
+	/delete-property/ apple,always-on;
 };
 
 / {

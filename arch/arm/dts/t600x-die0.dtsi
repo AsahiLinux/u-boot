@@ -6,6 +6,7 @@
  * Copyright The Asahi Linux Contributors
  */
 
+
 	nco: clock-controller@28e03c000 {
 		compatible = "apple,t6000-nco", "apple,nco";
 		reg = <0x2 0x8e03c000 0x0 0x14000>;
@@ -177,6 +178,7 @@
 		interrupt-parent = <&aic>;
 		interrupts = <AIC_IRQ 0 821 IRQ_TYPE_LEVEL_HIGH>;
 		status = "disabled";
+		power-domains = <&ps_disp0_cpu0>;
 	};
 
 	dcp_dart: iommu@38b30c000 {
@@ -185,6 +187,7 @@
 		#iommu-cells = <1>;
 		interrupt-parent = <&aic>;
 		interrupts = <AIC_IRQ 0 821 IRQ_TYPE_LEVEL_HIGH>;
+		power-domains = <&ps_disp0_cpu0>;
 	};
 
 	dcp_mbox: mbox@38bc08000 {
@@ -216,20 +219,21 @@
 			<0x3 0x8b800000 0x0 0x800000>,
 			<0x2 0x8e3d0000 0x0 0x4000>;
 		power-domains = <&ps_disp0_cpu0>;
+		resets = <&ps_disp0_cpu0>;
 		clocks = <&clk_disp0>;
-		apple,asc-dram-mask = <0x1f0 0x00000000>;
+		apple,asc-dram-mask = <0>;
 		apple,piodma-mapper = <&disp0_piodma>;
+		phandle = <&dcp>;
 	};
 
 	display: display-subsystem {
 		compatible = "apple,display-subsystem";
 		iommus = <&disp0_dart 0>;
-		apple,coprocessors = <&dcp>;
 		/* generate phandle explicitly for use in loader */
 		phandle = <&display>;
 	};
 
-	dart_sio_0: iommu@39b004000 {
+	sio_dart_0: iommu@39b004000 {
 		compatible = "apple,t6000-dart";
 		reg = <0x3 0x9b004000 0x0 0x4000>;
 		interrupt-parent = <&aic>;
@@ -238,7 +242,7 @@
 		power-domains = <&ps_sio_cpu>;
 	};
 
-	dart_sio_1: iommu@39b008000 {
+	sio_dart_1: iommu@39b008000 {
 		compatible = "apple,t6000-dart";
 		reg = <0x3 0x9b008000 0x0 0x8000>;
 		interrupt-parent = <&aic>;
@@ -341,7 +345,6 @@
 		pinctrl-0 = <&spi1_pins>;
 		pinctrl-names = "default";
 		power-domains = <&ps_spi1>;
-		status = "disabled";
 	};
 
 	spi3: spi@39b10c000 {
@@ -392,7 +395,7 @@
 				      <&aic AIC_IRQ 0 1118 IRQ_TYPE_LEVEL_HIGH>,
 				      <0>,
 				      <0>;
-		iommus = <&dart_sio_0 2>, <&dart_sio_1 2>;
+		iommus = <&sio_dart_0 2>, <&sio_dart_1 2>;
 		power-domains = <&ps_sio_adma>;
 		resets = <&ps_audio_p>;
 	};
@@ -411,17 +414,84 @@
 			    "tx2a", "rx2a", "tx2b", "rx2b",
 			    "tx3a", "rx3a", "tx3b", "rx3b";
 		interrupt-parent = <&aic>;
-		interrupts = <AIC_IRQ 0 1112 IRQ_TYPE_LEVEL_HIGH>,
+		interrupts = <AIC_IRQ 0 1111 IRQ_TYPE_LEVEL_HIGH>,
+			     <AIC_IRQ 0 1112 IRQ_TYPE_LEVEL_HIGH>,
 			     <AIC_IRQ 0 1113 IRQ_TYPE_LEVEL_HIGH>,
-			     <AIC_IRQ 0 1114 IRQ_TYPE_LEVEL_HIGH>,
-			     <AIC_IRQ 0 1115 IRQ_TYPE_LEVEL_HIGH>;
+			     <AIC_IRQ 0 1114 IRQ_TYPE_LEVEL_HIGH>;
 		power-domains = <&ps_audio_p>, <&ps_mca0>, <&ps_mca1>,
 				<&ps_mca2>, <&ps_mca3>;
 		resets = <&ps_audio_p>;
 		#sound-dai-cells = <1>;
 	};
 
-	pcie0_dart_0: dart@581008000 {
+	gpu: gpu@406400000 {
+		compatible = "apple,agx-g13x";
+		reg = <0x4 0x6400000 0 0x40000>,
+			<0x4 0x4000000 0 0x1000000>;
+		reg-names = "asc", "sgx";
+		interrupt-parent = <&aic>;
+		interrupts = <AIC_IRQ 0 1044 IRQ_TYPE_LEVEL_HIGH>,
+			<AIC_IRQ 0 1045 IRQ_TYPE_LEVEL_HIGH>,
+			<AIC_IRQ 0 1046 IRQ_TYPE_LEVEL_HIGH>,
+			<AIC_IRQ 0 1047 IRQ_TYPE_LEVEL_HIGH>,
+			<AIC_IRQ 0 1063 IRQ_TYPE_LEVEL_HIGH>;
+		mboxes = <&agx_mbox>;
+		power-domains = <&ps_gfx>;
+		memory-region = <&uat_ttbs>, <&uat_pagetables>, <&uat_handoff>;
+		memory-region-names = "ttbs", "pagetables", "handoff";
+
+		apple,firmware-version = <12 3 0>;
+		apple,firmware-compat = <12 3 0>;
+
+		operating-points-v2 = <&gpu_opp>;
+		apple,perf-base-pstate = <1>;
+		apple,min-sram-microvolt = <790000>;
+		apple,avg-power-filter-tc-ms = <1000>;
+		apple,avg-power-ki-only = <2.4>;
+		apple,avg-power-kp = <1.5>;
+		apple,avg-power-min-duty-cycle = <40>;
+		apple,avg-power-target-filter-tc = <125>;
+		apple,fast-die0-integral-gain = <500.0>;
+		apple,fast-die0-proportional-gain = <72.0>;
+		apple,perf-boost-ce-step = <50>;
+		apple,perf-boost-min-util = <90>;
+		apple,perf-filter-drop-threshold = <0>;
+		apple,perf-filter-time-constant = <5>;
+		apple,perf-filter-time-constant2 = <50>;
+		apple,perf-integral-gain = <6.3>;
+		apple,perf-integral-gain2 = <0.197392>;
+		apple,perf-integral-min-clamp = <0>;
+		apple,perf-proportional-gain = <15.75>;
+		apple,perf-proportional-gain2 = <6.853981>;
+		apple,perf-tgt-utilization = <85>;
+		apple,power-sample-period = <8>;
+		apple,ppm-filter-time-constant-ms = <100>;
+		apple,ppm-ki = <30>;
+		apple,ppm-kp = <1.5>;
+		apple,pwr-filter-time-constant = <313>;
+		apple,pwr-integral-gain = <0.0202129>;
+		apple,pwr-integral-min-clamp = <0>;
+		apple,pwr-min-duty-cycle = <40>;
+		apple,pwr-proportional-gain = <5.2831855>;
+
+		apple,core-leak-coef = GPU_REPEAT(1200.0);
+		apple,sram-leak-coef = GPU_REPEAT(20.0);
+	};
+
+	agx_mbox: mbox@406408000 {
+		compatible = "apple,t6000-asc-mailbox", "apple,asc-mailbox-v4";
+		reg = <0x4 0x6408000 0x0 0x4000>;
+		interrupt-parent = <&aic>;
+		interrupts = <AIC_IRQ 0 1059 IRQ_TYPE_LEVEL_HIGH>,
+			<AIC_IRQ 0 1060 IRQ_TYPE_LEVEL_HIGH>,
+			<AIC_IRQ 0 1061 IRQ_TYPE_LEVEL_HIGH>,
+			<AIC_IRQ 0 1062 IRQ_TYPE_LEVEL_HIGH>;
+		interrupt-names = "send-empty", "send-not-empty",
+			"recv-empty", "recv-not-empty";
+		#mbox-cells = <0>;
+	};
+
+	pcie0_dart_0: iommu@581008000 {
 		compatible = "apple,t6000-dart";
 		reg = <0x5 0x81008000 0x0 0x4000>;
 		#iommu-cells = <1>;
@@ -430,7 +500,7 @@
 		power-domains = <&ps_apcie_gp_sys>;
 	};
 
-	pcie0_dart_1: dart@582008000 {
+	pcie0_dart_1: iommu@582008000 {
 		compatible = "apple,t6000-dart";
 		reg = <0x5 0x82008000 0x0 0x4000>;
 		#iommu-cells = <1>;
@@ -439,22 +509,24 @@
 		power-domains = <&ps_apcie_gp_sys>;
 	};
 
-	pcie0_dart_2: dart@583008000 {
+	pcie0_dart_2: iommu@583008000 {
 		compatible = "apple,t6000-dart";
 		reg = <0x5 0x83008000 0x0 0x4000>;
 		#iommu-cells = <1>;
 		interrupt-parent = <&aic>;
 		interrupts = <AIC_IRQ 0 1277 IRQ_TYPE_LEVEL_HIGH>;
 		power-domains = <&ps_apcie_gp_sys>;
+		status = "disabled";
 	};
 
-	pcie0_dart_3: dart@584008000 {
+	pcie0_dart_3: iommu@584008000 {
 		compatible = "apple,t6000-dart";
 		reg = <0x5 0x84008000 0x0 0x4000>;
 		#iommu-cells = <1>;
 		interrupt-parent = <&aic>;
 		interrupts = <AIC_IRQ 0 1280 IRQ_TYPE_LEVEL_HIGH>;
 		power-domains = <&ps_apcie_gp_sys>;
+		status = "disabled";
 	};
 
 	pcie0: pcie@590000000 {
@@ -553,6 +625,7 @@
 					<0 0 0 2 &port02 0 0 0 1>,
 					<0 0 0 3 &port02 0 0 0 2>,
 					<0 0 0 4 &port02 0 0 0 3>;
+			status = "disabled";
 		};
 
 		port03: pci@3,0 {
@@ -572,5 +645,6 @@
 					<0 0 0 2 &port03 0 0 0 1>,
 					<0 0 0 3 &port03 0 0 0 2>,
 					<0 0 0 4 &port03 0 0 0 3>;
+			status = "disabled";
 		};
 	};

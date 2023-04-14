@@ -35,6 +35,7 @@
 			reg = <0 0 0 0>; /* To be filled by loader */
 			/* Format properties will be added by loader */
 			status = "disabled";
+			power-domains = <&ps_disp0_cpu0>;
 		};
 	};
 
@@ -286,7 +287,7 @@
 };
 
 / {
-	sound {
+	sound: sound {
 		compatible = "apple,j375-macaudio", "apple,macaudio";
 		model = "Mac Studio J375";
 
@@ -344,6 +345,7 @@
 	};
 };
 
+#ifndef NO_PCIE_SDHC
 &port01 {
 	/* SD card reader */
 	bus-range = <2 2>;
@@ -355,10 +357,12 @@
 		wp-inverted;
 	};
 };
+#endif
 
 &port02 {
 	/* 10 Gbit Ethernet */
 	bus-range = <3 3>;
+	status = "okay";
 	ethernet0: ethernet@0,0 {
 		reg = <0x30000 0x0 0x0 0x0 0x0>;
 		/* To be filled by the loader */
@@ -370,4 +374,25 @@
 	/* USB xHCI */
 	bus-range = <4 4>;
 	pwren-gpios = <&smc_gpio 20 GPIO_ACTIVE_HIGH>;
+	status = "okay";
 };
+
+
+&pcie0_dart_2 {
+	status = "okay";
+};
+
+&pcie0_dart_3 {
+	status = "okay";
+};
+
+#ifndef NO_GPU
+&gpu {
+	apple,avg-power-ki-only = <0.6375>;
+	apple,avg-power-kp = <0.58>;
+	apple,avg-power-target-filter-tc = <1>;
+	apple,perf-base-pstate = <3>;
+	apple,ppm-ki = <5.8>;
+	apple,ppm-kp = <0.355>;
+};
+#endif

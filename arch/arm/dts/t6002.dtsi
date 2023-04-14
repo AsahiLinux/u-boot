@@ -16,6 +16,10 @@
 
 #include "multi-die-cpp.h"
 
+#ifndef GPU_REPEAT
+# define GPU_REPEAT(x) <x x x x x x x x>
+#endif
+
 #include "t600x-common.dtsi"
 
 / {
@@ -72,6 +76,9 @@
 			reg = <0x0 0x800>;
 			enable-method = "spin-table";
 			cpu-release-addr = <0 0>; /* To be filled by loader */
+			next-level-cache = <&l2_cache_3>;
+			i-cache-size = <0x20000>;
+			d-cache-size = <0x10000>;
 			operating-points-v2 = <&icestorm_opp>;
 			capacity-dmips-mhz = <714>;
 			performance-domains = <&cpufreq_e_die1>;
@@ -83,6 +90,9 @@
 			reg = <0x0 0x801>;
 			enable-method = "spin-table";
 			cpu-release-addr = <0 0>; /* To be filled by loader */
+			next-level-cache = <&l2_cache_3>;
+			i-cache-size = <0x20000>;
+			d-cache-size = <0x10000>;
 			operating-points-v2 = <&icestorm_opp>;
 			capacity-dmips-mhz = <714>;
 			performance-domains = <&cpufreq_e_die1>;
@@ -94,6 +104,9 @@
 			reg = <0x0 0x10900>;
 			enable-method = "spin-table";
 			cpu-release-addr = <0 0>; /* To be filled by loader */
+			next-level-cache = <&l2_cache_4>;
+			i-cache-size = <0x30000>;
+			d-cache-size = <0x20000>;
 			operating-points-v2 = <&firestorm_opp>;
 			capacity-dmips-mhz = <1024>;
 			performance-domains = <&cpufreq_p0_die1>;
@@ -105,6 +118,9 @@
 			reg = <0x0 0x10901>;
 			enable-method = "spin-table";
 			cpu-release-addr = <0 0>; /* To be filled by loader */
+			next-level-cache = <&l2_cache_4>;
+			i-cache-size = <0x30000>;
+			d-cache-size = <0x20000>;
 			operating-points-v2 = <&firestorm_opp>;
 			capacity-dmips-mhz = <1024>;
 			performance-domains = <&cpufreq_p0_die1>;
@@ -116,6 +132,9 @@
 			reg = <0x0 0x10902>;
 			enable-method = "spin-table";
 			cpu-release-addr = <0 0>; /* To be filled by loader */
+			next-level-cache = <&l2_cache_4>;
+			i-cache-size = <0x30000>;
+			d-cache-size = <0x20000>;
 			operating-points-v2 = <&firestorm_opp>;
 			capacity-dmips-mhz = <1024>;
 			performance-domains = <&cpufreq_p0_die1>;
@@ -127,6 +146,9 @@
 			reg = <0x0 0x10903>;
 			enable-method = "spin-table";
 			cpu-release-addr = <0 0>; /* To be filled by loader */
+			next-level-cache = <&l2_cache_4>;
+			i-cache-size = <0x30000>;
+			d-cache-size = <0x20000>;
 			operating-points-v2 = <&firestorm_opp>;
 			capacity-dmips-mhz = <1024>;
 			performance-domains = <&cpufreq_p0_die1>;
@@ -138,6 +160,9 @@
 			reg = <0x0 0x10a00>;
 			enable-method = "spin-table";
 			cpu-release-addr = <0 0>; /* To be filled by loader */
+			next-level-cache = <&l2_cache_5>;
+			i-cache-size = <0x30000>;
+			d-cache-size = <0x20000>;
 			operating-points-v2 = <&firestorm_opp>;
 			capacity-dmips-mhz = <1024>;
 			performance-domains = <&cpufreq_p1_die1>;
@@ -149,6 +174,9 @@
 			reg = <0x0 0x10a01>;
 			enable-method = "spin-table";
 			cpu-release-addr = <0 0>; /* To be filled by loader */
+			next-level-cache = <&l2_cache_5>;
+			i-cache-size = <0x30000>;
+			d-cache-size = <0x20000>;
 			operating-points-v2 = <&firestorm_opp>;
 			capacity-dmips-mhz = <1024>;
 			performance-domains = <&cpufreq_p1_die1>;
@@ -160,6 +188,9 @@
 			reg = <0x0 0x10a02>;
 			enable-method = "spin-table";
 			cpu-release-addr = <0 0>; /* To be filled by loader */
+			next-level-cache = <&l2_cache_5>;
+			i-cache-size = <0x30000>;
+			d-cache-size = <0x20000>;
 			operating-points-v2 = <&firestorm_opp>;
 			capacity-dmips-mhz = <1024>;
 			performance-domains = <&cpufreq_p1_die1>;
@@ -171,9 +202,33 @@
 			reg = <0x0 0x10a03>;
 			enable-method = "spin-table";
 			cpu-release-addr = <0 0>; /* To be filled by loader */
+			next-level-cache = <&l2_cache_5>;
+			i-cache-size = <0x30000>;
+			d-cache-size = <0x20000>;
 			operating-points-v2 = <&firestorm_opp>;
 			capacity-dmips-mhz = <1024>;
 			performance-domains = <&cpufreq_p1_die1>;
+		};
+
+		l2_cache_3: l2-cache-3 {
+			compatible = "cache";
+			cache-level = <2>;
+			cache-unified;
+			cache-size = <0x400000>;
+		};
+
+		l2_cache_4: l2-cache-4 {
+			compatible = "cache";
+			cache-level = <2>;
+			cache-unified;
+			cache-size = <0xc00000>;
+		};
+
+		l2_cache_5: l2-cache-5 {
+			compatible = "cache";
+			cache-level = <2>;
+			cache-unified;
+			cache-size = <0xc00000>;
 		};
 	};
 
@@ -185,6 +240,8 @@
 			 <0x5 0x80000000 0x5 0x80000000 0x1 0x80000000>,
 			 <0x7 0x0 0x7 0x0 0xf 0x80000000>;
 		nonposted-mmio;
+		/* Required to get >32-bit DMA via DARTs */
+		dma-ranges = <0 0 0 0 0xffffffff 0xffffc000>;
 
 		// filled via templated includes at the end of the file
 	};
@@ -196,6 +253,8 @@
 		ranges = <0x2 0x0 0x22 0x0 0x4 0x0>,
 			 <0x7 0x0 0x27 0x0 0xf 0x80000000>;
 		nonposted-mmio;
+		/* Required to get >32-bit DMA via DARTs */
+		dma-ranges = <0 0 0 0 0xffffffff 0xffffc000>;
 
 		// filled via templated includes at the end of the file
 	};
@@ -244,4 +303,13 @@
 				&cpu_p30 &cpu_p31 &cpu_p32 &cpu_p33>;
 		};
 	};
+};
+
+&ps_gfx {
+	// On t6002, the die0 GPU power domain needs both AFR power domains
+	power-domains = <&ps_afr>, <&ps_afr_die1>;
+};
+
+&gpu {
+	compatible = "apple,agx-t6002", "apple,agx-g13x";
 };
