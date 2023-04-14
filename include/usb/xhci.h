@@ -1314,4 +1314,7 @@ static inline void xhci_dma_unmap(struct xhci_ctrl *ctrl, dma_addr_t addr,
 #endif
 }
 
+int asmedia_xhci_check_request_fw(struct udevice *, struct xhci_hccr *,
+				  struct xhci_hcor *);
+
 #endif /* HOST_XHCI_H_ */
