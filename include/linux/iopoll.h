@@ -46,6 +46,9 @@
 #define readx_poll_sleep_timeout(op, addr, val, cond, sleep_us, timeout_us) \
 	read_poll_timeout(op, val, cond, sleep_us, timeout_us, addr)
 
+#define readb_poll_sleep_timeout(addr, val, cond, sleep_us, timeout_us) \
+	readx_poll_sleep_timeout(readb, addr, val, cond, sleep_us, timeout_us)
+
 #define readl_poll_sleep_timeout(addr, val, cond, sleep_us, timeout_us) \
 	readx_poll_sleep_timeout(readl, addr, val, cond, sleep_us, timeout_us)
 
