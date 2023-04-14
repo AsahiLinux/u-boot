@@ -574,6 +574,16 @@ int ft_board_setup(void *blob, struct bd_info *bd)
 	int node, ret;
 
 	/*
+	 * Drop firmware initrd to make sure it doesn't prevent
+	 * loading of the the kernel initrd image.
+	 */
+	node = fdt_path_offset(blob, "/chosen");
+	if (node >= 0) {
+		fdt_delprop(blob, node, "linux,initrd-start");
+		fdt_delprop(blob, node, "linux,initrd-end");
+	}
+
+	/*
 	 * Modify the "stdout-path" property under "/chosen" to point
 	 * at "/chosen/framebuffer if a keyboard is available and
 	 * we're not running under the m1n1 hypervisor.
