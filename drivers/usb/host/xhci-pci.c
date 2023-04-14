@@ -53,6 +53,7 @@ static int xhci_pci_init(struct udevice *dev, struct xhci_hccr **ret_hccr,
 static int xhci_pci_probe(struct udevice *dev)
 {
 	struct xhci_pci_plat *plat = dev_get_plat(dev);
+	struct pci_child_plat *pplat = dev_get_parent_plat(dev);
 	struct xhci_hccr *hccr;
 	struct xhci_hcor *hcor;
 	int ret;
@@ -76,6 +77,14 @@ static int xhci_pci_probe(struct udevice *dev)
 	ret = xhci_pci_init(dev, &hccr, &hcor);
 	if (ret)
 		goto err_reset;
+
+	if (IS_ENABLED(CONFIG_USB_XHCI_PCI_ASMEDIA) &&
+	    pplat->vendor == PCI_VENDOR_ID_ASMEDIA &&
+	    pplat->device == 0x2142) {
+		ret = asmedia_xhci_check_request_fw(dev, hccr, hcor);
+		if (ret)
+			goto err_reset;
+	}
 
 	ret = xhci_register(dev, hccr, hcor);
 	if (ret)
