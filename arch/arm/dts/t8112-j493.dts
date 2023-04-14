@@ -18,8 +18,18 @@
 	model = "Apple MacBook Pro (13-inch, M2, 2022)";
 
 	aliases {
-		wifi0 = &wifi0;
 		bluetooth0 = &bluetooth0;
+		wifi0 = &wifi0;
+		keyboard = &keyboard;
+	};
+};
+
+&dcp {
+	panel: panel {
+		compatible = "apple,panel-j493", "apple,panel";
+		width-mm = <286>;
+		height-mm = <179>;
+		apple,max-brightness = <525>;
 	};
 };
 
@@ -31,7 +41,7 @@
 &port00 {
 	bus-range = <1 1>;
 	pwren-gpios = <&smc_gpio 13 GPIO_ACTIVE_HIGH>;
-	wifi0: network@0,0 {
+	wifi0: wifi@0,0 {
 		compatible = "pci14e4,4425";
 		reg = <0x10000 0x0 0x0 0x0 0x0>;
 		/* To be filled by the loader */
@@ -40,7 +50,7 @@
 		brcm,board-type = "apple,kyushu";
 	};
 
-	bluetooth0: network@0,1 {
+	bluetooth0: bluetooth@0,1 {
 		compatible = "pci14e4,5f69";
 		reg = <0x10100 0x0 0x0 0x0 0x0>;
 		/* To be filled by the loader */
@@ -61,17 +71,7 @@
 	label = "USB-C Left-front";
 };
 
-/*
- * Remove unused PCIe ports and disable the associated DARTs.
- */
-
-/delete-node/ &port01;
-/delete-node/ &port02;
-/delete-node/ &port03;
-
 &i2c1 {
-	status = "okay";
-
 	speaker_left_rear: codec@38 {
 		compatible = "ti,sn012776", "ti,tas2764";
 		reg = <0x38>;
@@ -89,13 +89,7 @@
 	};
 };
 
-&i2c2 {
-	status = "okay";
-};
-
 &i2c3 {
-	status = "okay";
-
 	speaker_right_rear: codec@3b {
 		compatible = "ti,sn012776", "ti,tas2764";
 		reg = <0x3b>;
@@ -187,9 +181,37 @@
 	backlight = <&backlight>;
 };
 
+&mtp {
+	status = "okay";
+};
+&mtp_mbox {
+	status = "okay";
+};
+&mtp_dart {
+	status = "okay";
+};
+&mtp_dockchannel {
+	status = "okay";
+};
 &mtp_hid {
 	multi-touch {
+		apple,afe-reset-gpios = <&smc_gpio 8 GPIO_ACTIVE_LOW>;
 		firmware-name = "apple/tpmtfw-j493.bin";
+	};
+
+	keyboard: keyboard {
+		hid-country-code = <0>;
+		apple,keyboard-layout-id = <0>;
+	};
+
+	stm {
+		apple,stm-reset-gpios = <&smc_gpio 24 GPIO_ACTIVE_LOW>;
+	};
+
+	actuator {
+	};
+
+	tp_accel {
 	};
 };
 

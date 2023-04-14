@@ -13,6 +13,9 @@
 	aliases {
 		atcphy0 = &atcphy0;
 		atcphy1 = &atcphy1;
+		dcp = &dcp;
+		disp0 = &display;
+		disp0_piodma = &disp0_piodma;
 		serial0 = &serial0;
 		serial2 = &serial2;
 	};
@@ -27,9 +30,17 @@
 		framebuffer0: framebuffer@0 {
 			compatible = "apple,simple-framebuffer", "simple-framebuffer";
 			reg = <0 0 0 0>; /* To be filled by loader */
+			power-domains = <&ps_disp0_cpu0>;
 			/* Format properties will be added by loader */
 			status = "disabled";
 		};
+	};
+
+	reserved-memory {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+		/* To be filled by loader */
 	};
 
 	memory@800000000 {
@@ -47,6 +58,8 @@
 };
 
 &i2c0 {
+	status = "okay";
+
 	hpm0: usb-pd@38 {
 		compatible = "apple,cd321x";
 		reg = <0x38>;
@@ -144,33 +157,18 @@
 	};
 };
 
-&mtp {
+&i2c1 {
 	status = "okay";
 };
-&mtp_mbox{
+
+&i2c2 {
 	status = "okay";
 };
-&mtp_dart {
+
+&i2c3 {
 	status = "okay";
 };
-&mtp_dockchannel {
-	status = "okay";
-};
-&mtp_hid {
-	multi-touch {
-		apple,afe-reset-gpios = <&smc_gpio 8 GPIO_ACTIVE_LOW>;
-	};
 
-	keyboard {
-	};
-
-	stm {
-		apple,stm-reset-gpios = <&smc_gpio 24 GPIO_ACTIVE_LOW>;
-	};
-
-	actuator {
-	};
-
-	tp_accel {
-	};
+&nco_clkref {
+	clock-frequency = <900000000>;
 };

@@ -18,8 +18,19 @@
 	model = "Apple MacBook Air (13-inch, M2, 2022)";
 
 	aliases {
-		wifi0 = &wifi0;
 		bluetooth0 = &bluetooth0;
+		wifi0 = &wifi0;
+		keyboard = &keyboard;
+	};
+};
+
+&dcp {
+	panel: panel {
+		compatible = "apple,panel-j413", "apple,panel";
+		width-mm = <290>;
+		height-mm = <189>;
+		adj-height-mm = <181>;
+		apple,max-brightness = <525>;
 	};
 };
 
@@ -40,7 +51,7 @@
 		brcm,board-type = "apple,hokkaido";
 	};
 
-	bluetooth0: network@0,1 {
+	bluetooth0: bluetooth@0,1 {
 		compatible = "pci14e4,5f71";
 		reg = <0x10100 0x0 0x0 0x0 0x0>;
 		/* To be filled by the loader */
@@ -61,14 +72,6 @@
 	label = "USB-C Left-front";
 };
 
-/*
- * Remove unused PCIe ports and disable the associated DARTs.
- */
-
-/delete-node/ &port01;
-/delete-node/ &port02;
-/delete-node/ &port03;
-
 &i2c0 {
 	/* MagSafe port */
 	hpm5: usb-pd@3a {
@@ -81,8 +84,6 @@
 };
 
 &i2c1 {
-	status = "okay";
-
 	speaker_left_woof: codec@38 {
 		compatible = "ti,sn012776", "ti,tas2764";
 		reg = <0x38>;
@@ -100,13 +101,7 @@
 	};
 };
 
-&i2c2 {
-	status = "okay";
-};
-
 &i2c3 {
-	status = "okay";
-
 	speaker_right_woof: codec@3b {
 		compatible = "ti,sn012776", "ti,tas2764";
 		reg = <0x3b>;
@@ -131,7 +126,6 @@
 		interrupts-extended = <&pinctrl_ap 149 IRQ_TYPE_LEVEL_LOW>;
 		sound-name-prefix = "Jack";
 	};
-
 };
 
 &i2c4 {
@@ -199,9 +193,37 @@
 	backlight = <&backlight>;
 };
 
+&mtp {
+	status = "okay";
+};
+&mtp_mbox {
+	status = "okay";
+};
+&mtp_dart {
+	status = "okay";
+};
+&mtp_dockchannel {
+	status = "okay";
+};
 &mtp_hid {
 	multi-touch {
+		apple,afe-reset-gpios = <&smc_gpio 8 GPIO_ACTIVE_LOW>;
 		firmware-name = "apple/tpmtfw-j413.bin";
+	};
+
+	keyboard: keyboard {
+		hid-country-code = <0>;
+		apple,keyboard-layout-id = <0>;
+	};
+
+	stm {
+		apple,stm-reset-gpios = <&smc_gpio 24 GPIO_ACTIVE_LOW>;
+	};
+
+	actuator {
+	};
+
+	tp_accel {
 	};
 };
 
