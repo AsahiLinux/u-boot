@@ -17,6 +17,7 @@
 #define APPLE_RTKIT_EP_SYSLOG 2
 #define APPLE_RTKIT_EP_DEBUG 3
 #define APPLE_RTKIT_EP_IOREPORT 4
+#define APPLE_RTKIT_EP_OSLOG 8
 #define APPLE_RTKIT_EP_TRACEKIT 10
 
 /* Messages for management endpoint. */
@@ -53,6 +54,11 @@
 #define APPLE_RTKIT_BUFFER_REQUEST_SIZE GENMASK(51, 44)
 #define APPLE_RTKIT_BUFFER_REQUEST_IOVA GENMASK(41, 0)
 
+#define APPLE_RTKIT_OSLOG_TYPE GENMASK(63, 56)
+#define APPLE_RTKIT_OSLOG_BUFFER_REQUEST 1
+#define APPLE_RTKIT_OSLOG_SIZE GENMASK(55, 48)
+#define APPLE_RTKIT_OSLOG_IOVA GENMASK(47, 0)
+
 #define TIMEOUT_1SEC_US 1000000
 
 struct apple_rtkit {
@@ -64,6 +70,7 @@ struct apple_rtkit {
 	struct apple_rtkit_buffer syslog_buffer;
 	struct apple_rtkit_buffer crashlog_buffer;
 	struct apple_rtkit_buffer ioreport_buffer;
+	struct apple_rtkit_buffer oslog_buffer;
 
 	int iop_pwr;
 	int ap_pwr;
@@ -96,6 +103,8 @@ void apple_rtkit_free(struct apple_rtkit *rtk)
 			rtk->shmem_destroy(rtk->cookie, &rtk->crashlog_buffer);
 		if (rtk->ioreport_buffer.buffer)
 			rtk->shmem_destroy(rtk->cookie, &rtk->ioreport_buffer);
+		if (rtk->oslog_buffer.buffer)
+			rtk->shmem_destroy(rtk->cookie, &rtk->oslog_buffer);
 	} else {
 		if (rtk->syslog_buffer.buffer)
 			free(rtk->syslog_buffer.buffer);
@@ -103,6 +112,8 @@ void apple_rtkit_free(struct apple_rtkit *rtk)
 			free(rtk->crashlog_buffer.buffer);
 		if (rtk->ioreport_buffer.buffer)
 			free(rtk->ioreport_buffer.buffer);
+		if (rtk->oslog_buffer.buffer)
+			free(rtk->oslog_buffer.buffer);
 	}
 	free(rtk);
 }
@@ -113,7 +124,10 @@ static int rtkit_handle_buf_req(struct apple_rtkit *rtk, int endpoint, struct ap
 	size_t num_4kpages;
 	int ret;
 
-	num_4kpages = FIELD_GET(APPLE_RTKIT_BUFFER_REQUEST_SIZE, msg->msg0);
+	if (endpoint == APPLE_RTKIT_EP_OSLOG)
+		num_4kpages = FIELD_GET(APPLE_RTKIT_OSLOG_SIZE, msg->msg0);
+	else
+		num_4kpages = FIELD_GET(APPLE_RTKIT_BUFFER_REQUEST_SIZE, msg->msg0);
 
 	if (num_4kpages == 0) {
 		printf("%s: unexpected request for buffer without size\n", __func__);
@@ -129,6 +143,9 @@ static int rtkit_handle_buf_req(struct apple_rtkit *rtk, int endpoint, struct ap
 		break;
 	case APPLE_RTKIT_EP_IOREPORT:
 		buf = &rtk->ioreport_buffer;
+		break;
+	case APPLE_RTKIT_EP_OSLOG:
+		buf = &rtk->oslog_buffer;
 		break;
 	default:
 		printf("%s: unexpected endpoint %d\n", __func__, endpoint);
@@ -155,9 +172,17 @@ static int rtkit_handle_buf_req(struct apple_rtkit *rtk, int endpoint, struct ap
 	}
 
 	if (!buf->is_mapped) {
-		msg->msg0 = FIELD_PREP(APPLE_RTKIT_MGMT_TYPE, APPLE_RTKIT_BUFFER_REQUEST) |
-				FIELD_PREP(APPLE_RTKIT_BUFFER_REQUEST_SIZE, num_4kpages) |
-				FIELD_PREP(APPLE_RTKIT_BUFFER_REQUEST_IOVA, buf->dva);
+		/* oslog uses different fields */
+		if (endpoint == APPLE_RTKIT_EP_OSLOG) {
+			msg->msg0 = FIELD_PREP(APPLE_RTKIT_OSLOG_TYPE,
+				APPLE_RTKIT_OSLOG_BUFFER_REQUEST);
+			msg->msg0 |= FIELD_PREP(APPLE_RTKIT_OSLOG_SIZE, num_4kpages);
+			msg->msg0 |= FIELD_PREP(APPLE_RTKIT_OSLOG_IOVA,	buf->dva >> 12);
+		} else {
+			msg->msg0 = FIELD_PREP(APPLE_RTKIT_MGMT_TYPE, APPLE_RTKIT_BUFFER_REQUEST);
+			msg->msg0 |= FIELD_PREP(APPLE_RTKIT_BUFFER_REQUEST_SIZE, num_4kpages);
+			msg->msg0 |= FIELD_PREP(APPLE_RTKIT_BUFFER_REQUEST_IOVA, buf->dva);
+		}
 		msg->msg1 = endpoint;
 
 		return mbox_send(rtk->chan, msg);
@@ -211,6 +236,21 @@ int apple_rtkit_poll(struct apple_rtkit *rtk, ulong timeout)
 			ret = mbox_send(rtk->chan, &msg);
 			if (ret < 0)
 				return ret;
+			return 0;
+		}
+	}
+
+	if (endpoint == APPLE_RTKIT_EP_OSLOG) {
+		int oslog_msgtype = FIELD_GET(APPLE_RTKIT_OSLOG_TYPE, msg.msg0);
+
+		switch (oslog_msgtype) {
+		case APPLE_RTKIT_OSLOG_BUFFER_REQUEST:
+			ret = rtkit_handle_buf_req(rtk, APPLE_RTKIT_EP_OSLOG, &msg);
+			if (ret < 0)
+				return ret;
+			return 0;
+		default:
+			printf("%s: unknown oslog message: %llx\n", __func__, msg.msg0);
 			return 0;
 		}
 	}
