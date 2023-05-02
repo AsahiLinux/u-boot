@@ -828,6 +828,16 @@ static char *asahi_esp_devpart(void)
 	return devpart;
 }
 
+const char *env_fat_get_intf(void)
+{
+	return blk_get_uclass_name(UCLASS_NVME);
+}
+
+char *env_fat_get_dev_part(void)
+{
+	return asahi_esp_devpart();
+}
+
 #define KERNEL_COMP_SIZE	SZ_128M
 
 #define lmb_alloc(size, addr) lmb_alloc_mem(LMB_MEM_ALLOC_ANY, SZ_2M, addr, size, LMB_NONE)
