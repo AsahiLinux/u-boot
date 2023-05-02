@@ -96,6 +96,7 @@ config ENV_IS_IN_EEPROM
 config ENV_IS_IN_FAT
 	bool "Environment is in a FAT filesystem"
 	depends on !CHAIN_OF_TRUST
+	default y if ARCH_APPLE
 	default y if ARCH_BCM283X
 	default y if ARCH_SUNXI && MMC
 	default y if MMC_OMAP_HS && TI_COMMON_CMD_OPTIONS
