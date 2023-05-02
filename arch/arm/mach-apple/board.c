@@ -826,6 +826,16 @@ static char *asahi_esp_devpart(void)
 	return devpart;
 }
 
+const char *env_fat_get_intf(void)
+{
+	return blk_get_uclass_name(UCLASS_NVME);
+}
+
+char *env_fat_get_dev_part(void)
+{
+	return asahi_esp_devpart();
+}
+
 #define KERNEL_COMP_SIZE	SZ_128M
 
 int board_late_init(void)
