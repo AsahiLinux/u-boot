@@ -820,8 +820,12 @@ static char *asahi_esp_devpart(void)
 			break;
 	}
 
-	if (part > 0)
+	if (part > 0) {
 		snprintf(devpart, sizeof(devpart), "%d:%d", devnum, part);
+		efi_system_partition.uclass_id = UCLASS_NVME;
+		efi_system_partition.devnum = devnum;
+		efi_system_partition.part = part;
+	}
 
 	return devpart;
 }
