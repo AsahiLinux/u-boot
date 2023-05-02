@@ -8,6 +8,8 @@
 #include <efi_loader.h>
 #include <env.h>
 #include <lmb.h>
+#include <nvme.h>
+#include <part.h>
 
 #include <asm/armv8/mmu.h>
 #include <asm/global_data.h>
@@ -771,6 +773,61 @@ u64 get_page_table_size(void)
 	return SZ_256K;
 }
 
+static char *asahi_esp_devpart(void)
+{
+	struct disk_partition info;
+	struct blk_desc *nvme_blk;
+	const char *uuid = NULL;
+	int devnum, len, p, part, ret;
+	static char devpart[64];
+	struct udevice *dev;
+	ofnode node;
+
+	if (devpart[0])
+		return devpart;
+
+	node = ofnode_path("/chosen");
+	if (ofnode_valid(node)) {
+		uuid = ofnode_get_property(node, "asahi,efi-system-partition",
+					   &len);
+	}
+
+	nvme_scan_namespace();
+	for (devnum = 0, part = 0; ; devnum++) {
+		nvme_blk = blk_get_devnum_by_uclass_id(UCLASS_NVME, devnum);
+		if (!nvme_blk)
+			break;
+
+		dev = dev_get_parent(nvme_blk->bdev);
+		if (!device_is_compatible(dev, "apple,nvme-ans2") &&
+		    !device_is_compatible(dev, "apple,t8103-nvme-ans2"))
+			continue;
+
+		for (p = 1; p <= MAX_SEARCH_PARTITIONS; p++) {
+			ret = part_get_info(nvme_blk, p, &info);
+			if (ret < 0)
+				break;
+
+			if (info.bootable & PART_EFI_SYSTEM_PARTITION) {
+				if (uuid && strcasecmp(uuid, info.uuid) == 0) {
+					part = p;
+					break;
+				}
+				if (part == 0)
+					part = p;
+			}
+		}
+
+		if (part > 0)
+			break;
+	}
+
+	if (part > 0)
+		snprintf(devpart, sizeof(devpart), "%x:%x", devnum, part);
+
+	return devpart;
+}
+
 #define KERNEL_COMP_SIZE	SZ_128M
 
 #define lmb_alloc(size, addr) lmb_alloc_mem(LMB_MEM_ALLOC_ANY, SZ_2M, addr, size, LMB_NONE)
@@ -779,6 +836,9 @@ int board_late_init(void)
 {
 	u32 status = 0;
 	phys_addr_t addr;
+
+	env_set("storage_interface", blk_get_uclass_name(UCLASS_NVME));
+	env_set("fw_dev_part", asahi_esp_devpart());
 
 	/* somewhat based on the Linux Kernel boot requirements:
 	 * align by 2M and maximal FDT size 2M
