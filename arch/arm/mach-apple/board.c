@@ -7,7 +7,9 @@
 #include <dm.h>
 #include <dm/uclass-internal.h>
 #include <efi_loader.h>
+#include <efi_variable.h>
 #include <lmb.h>
+#include <malloc.h>
 #include <nvme.h>
 #include <part.h>
 
@@ -842,6 +844,88 @@ char *env_fat_get_dev_part(void)
 
 #define KERNEL_COMP_SIZE	SZ_128M
 
+static void efi_seed_boot_options(void)
+{
+	struct efi_load_option lo;
+	struct blk_desc *desc;
+	efi_uintn_t size;
+	efi_status_t ret;
+	u16 *bootorder;
+	u32 boot_index;
+	u16 varname[9];
+	u16 devname[BOOTMENU_DEVICE_NAME_MAX];
+	char buf[BOOTMENU_DEVICE_NAME_MAX];
+	char *optional_data;
+	u16 *tmp = devname;
+	void *p;
+
+	/*
+	 * Don't create a boot option if we don't have a designated
+	 * EFI System Partition.
+	 */
+	if (efi_system_partition.uclass_id == UCLASS_INVALID)
+		return;
+
+	ret = efi_init_obj_list();
+	if (ret != EFI_SUCCESS)
+		return;
+
+	/*
+	 * If the "BootOrder" UEFI variable already exists we don't
+	 * need to create a boot option.
+	 */
+	bootorder = efi_get_var(u"BootOrder", &efi_global_variable_guid,
+				&size);
+	if (bootorder)
+		return;
+
+	desc = blk_get_devnum_by_uclass_id(efi_system_partition.uclass_id,
+					   efi_system_partition.devnum);
+	if (desc == NULL)
+		return;
+
+	snprintf(buf, sizeof(buf), "%s %d:%d",
+		 blk_get_uclass_name(efi_system_partition.uclass_id),
+		 efi_system_partition.devnum, efi_system_partition.part);
+	utf8_utf16_strcpy(&tmp, buf);
+
+	/*
+	 * Create a boot option for the designated EFI System
+	 * Partition.  This makes sure that the EFI boot manager will
+	 * be used and that it will attempt to boot from this
+	 * partition first.  Mark the boot option as automatically
+	 * generated to prevent eficonfig_enumerate_boot_option() from
+	 * generating another one for the same partition.
+	 */
+	lo.label = devname;
+	lo.file_path = efi_dp_from_part(desc, efi_system_partition.part);
+	lo.file_path_length = efi_dp_size(lo.file_path) + sizeof(END);
+	lo.attributes = LOAD_OPTION_ACTIVE;
+	lo.optional_data = "1234567";
+	size = efi_serialize_load_option(&lo, (u8 **)&p);
+	if (size == 0)
+		return;
+	optional_data = (char *)p + (size - u16_strsize(u"1234567"));
+	memcpy(optional_data, &efi_guid_bootmenu_auto_generated,
+	       sizeof(efi_guid_t));
+
+	ret = efi_bootmgr_get_unused_bootoption(varname, sizeof(varname),
+						&boot_index);
+	if (ret != EFI_SUCCESS)
+		return;
+
+	ret = efi_set_variable_int(varname, &efi_global_variable_guid,
+				   EFI_VARIABLE_NON_VOLATILE |
+				   EFI_VARIABLE_BOOTSERVICE_ACCESS |
+				   EFI_VARIABLE_RUNTIME_ACCESS,
+				   size, p, false);
+	free(p);
+	if (ret != EFI_SUCCESS)
+		return;
+
+	efi_bootmgr_append_bootorder(boot_index);
+}
+
 int board_late_init(void)
 {
 	struct lmb lmb;
@@ -868,6 +952,8 @@ int board_late_init(void)
 
 	if (status)
 		log_warning("late_init: Failed to set run time variables\n");
+
+	efi_seed_boot_options();
 
 	return 0;
 }
