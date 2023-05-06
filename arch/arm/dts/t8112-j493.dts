@@ -239,8 +239,10 @@
 	status = "okay";
 };
 &mtp_hid {
+	apple,afe-reset-gpios = <&smc_gpio 8 GPIO_ACTIVE_LOW>;
+	apple,stm-reset-gpios = <&smc_gpio 24 GPIO_ACTIVE_LOW>;
+
 	multi-touch {
-		apple,afe-reset-gpios = <&smc_gpio 8 GPIO_ACTIVE_LOW>;
 		firmware-name = "apple/tpmtfw-j493.bin";
 	};
 
@@ -250,7 +252,6 @@
 	};
 
 	stm {
-		apple,stm-reset-gpios = <&smc_gpio 24 GPIO_ACTIVE_LOW>;
 	};
 
 	actuator {
