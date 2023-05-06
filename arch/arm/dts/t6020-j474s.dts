@@ -1,0 +1,102 @@
+// SPDX-License-Identifier: GPL-2.0+ OR MIT
+/*
+ * Mac Mini (M2 Pro, 2023)
+ *
+ * target-type: J474s
+ *
+ * Copyright The Asahi Linux Contributors
+ */
+
+/dts-v1/;
+
+#include "t6020.dtsi"
+
+/*
+ * These model is very similar to the previous generation Mac Studio, other than
+ * the GPIO indices.
+ */
+
+#define NO_PCIE_SDHC
+#define NO_GPU
+#include "t600x-j375.dtsi"
+
+/ {
+	compatible = "apple,j474s", "apple,t6020", "apple,arm-platform";
+	model = "Apple Mac Mini (M2 Pro, 2023)";
+
+	aliases {
+		ethernet0 = &ethernet0;
+	};
+};
+
+&hpm0 {
+	interrupts = <44 IRQ_TYPE_LEVEL_LOW>;
+};
+
+&hpm1 {
+	interrupts = <44 IRQ_TYPE_LEVEL_LOW>;
+};
+
+&hpm2 {
+	interrupts = <44 IRQ_TYPE_LEVEL_LOW>;
+};
+
+&hpm3  {
+	interrupts = <44 IRQ_TYPE_LEVEL_LOW>;
+};
+
+&wifi0 {
+	compatible = "pci14e4,4434";
+	brcm,board-type = "apple,tasmania";
+};
+
+&bluetooth0 {
+	compatible = "pci14e4,5f72";
+	brcm,board-type = "apple,tasmania";
+};
+
+/* PCIe devices */
+&port00 {
+	pwren-gpios = <&smc_gpio 13 GPIO_ACTIVE_HIGH>;
+};
+
+&port01 {
+	/*
+	 * TODO: do not enable port without device. This works around a Linux
+	 * bug which results in mismatched iommus on gaps in PCI(e) ports / bus
+	 * numbers.
+	 */
+	bus-range = <2 2>;
+	status = "okay";
+};
+
+&port02 {
+	/* 10 Gbit Ethernet */
+	bus-range = <3 3>;
+	status = "okay";
+	ethernet0: ethernet@0,0 {
+		reg = <0x30000 0x0 0x0 0x0 0x0>;
+		/* To be filled by the loader */
+		local-mac-address = [00 10 18 00 00 00];
+	};
+};
+
+&port03 {
+	/* USB xHCI */
+	pwren-gpios = <&smc_gpio 19 GPIO_ACTIVE_HIGH>;
+};
+
+
+&speaker {
+	shutdown-gpios = <&pinctrl_ap 57 GPIO_ACTIVE_HIGH>;
+	interrupts-extended = <&pinctrl_ap 58 IRQ_TYPE_LEVEL_LOW>;
+};
+
+&jack_codec {
+	reset-gpios = <&pinctrl_nub 8 GPIO_ACTIVE_HIGH>;
+	interrupts-extended = <&pinctrl_ap 59 IRQ_TYPE_LEVEL_LOW>;
+};
+
+&sound {
+	model = "Mac mini J474";
+};
