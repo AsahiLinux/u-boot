@@ -442,6 +442,15 @@ static int usb_parse_config(struct usb_device *dev,
 				puts("Endpoint descriptor out of order!\n");
 				break;
 			}
+			if (if_desc->num_altsetting > 1) {
+				/*
+				 * Ignore altsettings, which can trigger duplicate
+				 * endpoint errors below. Revisit this when some
+				 * driver actually needs altsettings with differing
+				 * endpoint setups.
+				 */
+				break;
+			}
 			epno = dev->config.if_desc[ifno].no_of_ep;
 			if_desc = &dev->config.if_desc[ifno];
 			if (epno >= USB_MAXENDPOINTS) {
