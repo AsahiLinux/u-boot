@@ -47,7 +47,8 @@ static int sandbox_submit_control(struct udevice *bus,
 				      struct usb_device *udev,
 				      unsigned long pipe,
 				      void *buffer, int length,
-				      struct devrequest *setup)
+				      struct devrequest *setup,
+				      int timeout)
 {
 	struct sandbox_usb_ctrl *ctrl = dev_get_priv(bus);
 	struct udevice *emul;
@@ -81,7 +82,8 @@ static int sandbox_submit_control(struct udevice *bus,
 }
 
 static int sandbox_submit_bulk(struct udevice *bus, struct usb_device *udev,
-			       unsigned long pipe, void *buffer, int length)
+			       unsigned long pipe, void *buffer, int length,
+			       int timeout)
 {
 	struct udevice *emul;
 	int ret;
