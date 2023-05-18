@@ -177,7 +177,7 @@ int usb_emul_find_for_dev(struct udevice *dev, struct udevice **emulp)
 
 int usb_emul_control(struct udevice *emul, struct usb_device *udev,
 		     unsigned long pipe, void *buffer, int length,
-		     struct devrequest *setup)
+		     struct devrequest *setup, int timeout)
 {
 	struct dm_usb_ops *ops = usb_get_emul_ops(emul);
 	struct usb_dev_plat *plat;
@@ -199,7 +199,7 @@ int usb_emul_control(struct udevice *emul, struct usb_device *udev,
 			if (ret)
 				return ret;
 			return ops->control(emul, udev, pipe, buffer, length,
-					    setup);
+					    setup, timeout);
 		}
 	} else if (pipe == usb_snddefctrl(udev)) {
 		switch (setup->request) {
@@ -222,7 +222,7 @@ int usb_emul_control(struct udevice *emul, struct usb_device *udev,
 			if (ret)
 				return ret;
 			return ops->control(emul, udev, pipe, buffer, length,
-					    setup);
+					    setup, timeout);
 		}
 	}
 	debug("pipe=%lx\n", pipe);
@@ -231,7 +231,7 @@ int usb_emul_control(struct udevice *emul, struct usb_device *udev,
 }
 
 int usb_emul_bulk(struct udevice *emul, struct usb_device *udev,
-		  unsigned long pipe, void *buffer, int length)
+		  unsigned long pipe, void *buffer, int length, int timeout)
 {
 	struct dm_usb_ops *ops = usb_get_emul_ops(emul);
 	int ret;
@@ -243,7 +243,7 @@ int usb_emul_bulk(struct udevice *emul, struct usb_device *udev,
 	ret = device_probe(emul);
 	if (ret)
 		return ret;
-	return ops->bulk(emul, udev, pipe, buffer, length);
+	return ops->bulk(emul, udev, pipe, buffer, length, timeout);
 }
 
 int usb_emul_int(struct udevice *emul, struct usb_device *udev,

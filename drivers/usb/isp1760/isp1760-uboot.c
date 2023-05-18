@@ -28,7 +28,8 @@
 static int isp1760_msg_submit_control(struct udevice *dev,
 				      struct usb_device *udev,
 				      unsigned long pipe, void *buffer,
-				      int length, struct devrequest *setup)
+				      int length, struct devrequest *setup,
+				      int timeout)
 {
 	struct isp1760_host_data *host = dev_get_priv(dev);
 
@@ -38,7 +39,8 @@ static int isp1760_msg_submit_control(struct udevice *dev,
 }
 
 static int isp1760_msg_submit_bulk(struct udevice *dev, struct usb_device *udev,
-				   unsigned long pipe, void *buffer, int length)
+				   unsigned long pipe, void *buffer, int length,
+				   int timeout)
 {
 	struct isp1760_host_data *host = dev_get_priv(dev);
 

@@ -133,7 +133,7 @@ static void *flash_desc_list[] = {
 
 static int sandbox_flash_control(struct udevice *dev, struct usb_device *udev,
 				 unsigned long pipe, void *buff, int len,
-				 struct devrequest *setup)
+				 struct devrequest *setup, int timeout)
 {
 	struct sandbox_flash_priv *priv = dev_get_priv(dev);
 
@@ -209,7 +209,8 @@ static int handle_ufi_command(struct sandbox_flash_priv *priv, const void *buff,
 }
 
 static int sandbox_flash_bulk(struct udevice *dev, struct usb_device *udev,
-			      unsigned long pipe, void *buff, int len)
+			      unsigned long pipe, void *buff, int len,
+			      int timeout)
 {
 	struct sandbox_flash_priv *priv = dev_get_priv(dev);
 	struct scsi_emul_info *info = &priv->eminfo;

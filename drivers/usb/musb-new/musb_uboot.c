@@ -310,14 +310,15 @@ int usb_lowlevel_init(int index, enum usb_init_type init, void **controller)
 #if CONFIG_IS_ENABLED(DM_USB)
 static int musb_submit_control_msg(struct udevice *dev, struct usb_device *udev,
 				   unsigned long pipe, void *buffer, int length,
-				   struct devrequest *setup)
+				   struct devrequest *setup, int timeout)
 {
 	struct musb_host_data *host = dev_get_priv(dev);
 	return _musb_submit_control_msg(host, udev, pipe, buffer, length, setup);
 }
 
 static int musb_submit_bulk_msg(struct udevice *dev, struct usb_device *udev,
-				unsigned long pipe, void *buffer, int length)
+				unsigned long pipe, void *buffer, int length,
+				int timeout)
 {
 	struct musb_host_data *host = dev_get_priv(dev);
 	return _musb_submit_bulk_msg(host, udev, pipe, buffer, length);

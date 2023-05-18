@@ -1281,7 +1281,7 @@ int usb_lowlevel_stop(int index)
 #if CONFIG_IS_ENABLED(DM_USB)
 static int dwc2_submit_control_msg(struct udevice *dev, struct usb_device *udev,
 				   unsigned long pipe, void *buffer, int length,
-				   struct devrequest *setup)
+				   struct devrequest *setup, int timeout)
 {
 	struct dwc2_priv *priv = dev_get_priv(dev);
 
@@ -1292,7 +1292,8 @@ static int dwc2_submit_control_msg(struct udevice *dev, struct usb_device *udev,
 }
 
 static int dwc2_submit_bulk_msg(struct udevice *dev, struct usb_device *udev,
-				unsigned long pipe, void *buffer, int length)
+				unsigned long pipe, void *buffer, int length,
+				int timeout)
 {
 	struct dwc2_priv *priv = dev_get_priv(dev);
 
