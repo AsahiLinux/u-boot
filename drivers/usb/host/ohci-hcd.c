@@ -2047,7 +2047,7 @@ int submit_control_msg(struct usb_device *dev, unsigned long pipe,
 #if CONFIG_IS_ENABLED(DM_USB)
 static int ohci_submit_control_msg(struct udevice *dev, struct usb_device *udev,
 				   unsigned long pipe, void *buffer, int length,
-				   struct devrequest *setup)
+				   struct devrequest *setup, int timeout)
 {
 	ohci_t *ohci = dev_get_priv(usb_get_bus(dev));
 
@@ -2056,7 +2056,8 @@ static int ohci_submit_control_msg(struct udevice *dev, struct usb_device *udev,
 }
 
 static int ohci_submit_bulk_msg(struct udevice *dev, struct usb_device *udev,
-				unsigned long pipe, void *buffer, int length)
+				unsigned long pipe, void *buffer, int length,
+				int timeout)
 {
 	ohci_t *ohci = dev_get_priv(usb_get_bus(dev));
 
