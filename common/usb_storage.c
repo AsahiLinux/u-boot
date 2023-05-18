@@ -54,6 +54,12 @@
 #undef BBB_COMDAT_TRACE
 #undef BBB_XPORT_TRACE
 
+/*
+ * Timeout for read/write transfers. This needs to be able to handle very slow
+ * devices, such as hard disks that are spinning up.
+ */
+#define US_XFER_TIMEOUT 15000
+
 #include <scsi.h>
 /* direction table -- this indicates the direction of the data
  * transfer for each command code -- a 1 indicates input
@@ -411,7 +417,7 @@ static int us_one_transfer(struct us_data *us, int pipe, char *buf, int length)
 			      11 - maxtry);
 			result = usb_bulk_msg(us->pusb_dev, pipe, buf,
 					      this_xfer, &partial,
-					      USB_CNTL_TIMEOUT * 5);
+					      US_XFER_TIMEOUT);
 			debug("bulk_msg returned %d xferred %d/%d\n",
 			      result, partial, this_xfer);
 			if (us->pusb_dev->status != 0) {
@@ -751,7 +757,7 @@ static int usb_stor_BBB_transport(struct scsi_cmd *srb, struct us_data *us)
 		pipe = pipeout;
 
 	result = usb_bulk_msg(us->pusb_dev, pipe, srb->pdata, srb->datalen,
-			      &data_actlen, USB_CNTL_TIMEOUT * 5);
+			      &data_actlen, US_XFER_TIMEOUT);
 	/* special handling of STALL in DATA phase */
 	if ((result < 0) && (us->pusb_dev->status & USB_ST_STALLED)) {
 		debug("DATA:stall\n");
