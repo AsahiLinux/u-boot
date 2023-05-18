@@ -712,15 +712,6 @@ static int usb_stor_CBI_get_status(struct scsi_cmd *srb, struct us_data *us)
 #define USB_TRANSPORT_UNKNOWN_RETRY 5
 #define USB_TRANSPORT_NOT_READY_RETRY 10
 
-/* clear a stall on an endpoint - special for BBB devices */
-static int usb_stor_BBB_clear_endpt_stall(struct us_data *us, __u8 endpt)
-{
-	/* ENDPOINT_HALT = 0, so set value to 0 */
-	return usb_control_msg(us->pusb_dev, usb_sndctrlpipe(us->pusb_dev, 0),
-			       USB_REQ_CLEAR_FEATURE, USB_RECIP_ENDPOINT, 0,
-			       endpt, NULL, 0, USB_CNTL_TIMEOUT * 5);
-}
-
 static int usb_stor_BBB_transport(struct scsi_cmd *srb, struct us_data *us)
 {
 	int result, retry;
@@ -765,8 +756,7 @@ static int usb_stor_BBB_transport(struct scsi_cmd *srb, struct us_data *us)
 	if ((result < 0) && (us->pusb_dev->status & USB_ST_STALLED)) {
 		debug("DATA:stall\n");
 		/* clear the STALL on the endpoint */
-		result = usb_stor_BBB_clear_endpt_stall(us,
-					dir_in ? us->ep_in : us->ep_out);
+		result = usb_clear_halt(us->pusb_dev, pipe);
 		if (result >= 0)
 			/* continue on to STATUS phase */
 			goto st;
@@ -795,7 +785,7 @@ again:
 	    (us->pusb_dev->status & USB_ST_STALLED)) {
 		debug("STATUS:stall\n");
 		/* clear the STALL on the endpoint */
-		result = usb_stor_BBB_clear_endpt_stall(us, us->ep_in);
+		result = usb_clear_halt(us->pusb_dev, pipein);
 		if (result >= 0 && (retry++ < 1))
 			/* do a retry */
 			goto again;
