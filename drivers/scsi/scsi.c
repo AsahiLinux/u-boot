@@ -397,8 +397,8 @@ static int scsi_read_capacity(struct udevice *dev, struct scsi_cmd *pccb,
 
 	/* Read capacity (10) was insufficient. Use read capacity (16). */
 	memset(pccb->cmd, '\0', sizeof(pccb->cmd));
-	pccb->cmd[0] = SCSI_RD_CAPAC16;
-	pccb->cmd[1] = 0x10;
+	pccb->cmd[0] = SCSI_SRV_ACTION_IN;
+	pccb->cmd[1] = SCSI_SAI_RD_CAPAC16;
 	pccb->cmdlen = 16;
 	pccb->msgout[0] = SCSI_IDENTIFY; /* NOT USED */
 
