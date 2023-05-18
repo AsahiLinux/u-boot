@@ -705,7 +705,8 @@ static int r8a66597_submit_rh_msg(struct udevice *udev, struct usb_device *dev,
 static int r8a66597_submit_control_msg(struct udevice *udev,
 				       struct usb_device *dev,
 				       unsigned long pipe, void *buffer,
-				       int length, struct devrequest *setup)
+				       int length, struct devrequest *setup,
+				       int timeout)
 {
 	struct r8a66597 *r8a66597 = dev_get_priv(udev);
 	u16 r8a66597_address = setup->request == USB_REQ_SET_ADDRESS ?
@@ -743,7 +744,7 @@ static int r8a66597_submit_control_msg(struct udevice *udev,
 
 static int r8a66597_submit_bulk_msg(struct udevice *udev,
 				    struct usb_device *dev, unsigned long pipe,
-				    void *buffer, int length)
+				    void *buffer, int length, int timeout)
 {
 	struct r8a66597 *r8a66597 = dev_get_priv(udev);
 	int ret = 0;
