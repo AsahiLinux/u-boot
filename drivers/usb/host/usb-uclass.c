@@ -58,7 +58,8 @@ int submit_int_msg(struct usb_device *udev, unsigned long pipe, void *buffer,
 }
 
 int submit_control_msg(struct usb_device *udev, unsigned long pipe,
-		       void *buffer, int length, struct devrequest *setup)
+		       void *buffer, int length, struct devrequest *setup,
+		       int timeout)
 {
 	struct udevice *bus = udev->controller_dev;
 	struct dm_usb_ops *ops = usb_get_ops(bus);
@@ -68,7 +69,7 @@ int submit_control_msg(struct usb_device *udev, unsigned long pipe,
 	if (!ops->control)
 		return -ENOSYS;
 
-	err = ops->control(bus, udev, pipe, buffer, length, setup);
+	err = ops->control(bus, udev, pipe, buffer, length, setup, timeout);
 	if (setup->request == USB_REQ_SET_FEATURE &&
 	    setup->requesttype == USB_RT_PORT &&
 	    setup->value == cpu_to_le16(USB_PORT_FEAT_RESET) &&
@@ -81,7 +82,7 @@ int submit_control_msg(struct usb_device *udev, unsigned long pipe,
 }
 
 int submit_bulk_msg(struct usb_device *udev, unsigned long pipe, void *buffer,
-		    int length)
+		    int length, int timeout)
 {
 	struct udevice *bus = udev->controller_dev;
 	struct dm_usb_ops *ops = usb_get_ops(bus);
@@ -89,7 +90,7 @@ int submit_bulk_msg(struct usb_device *udev, unsigned long pipe, void *buffer,
 	if (!ops->bulk)
 		return -ENOSYS;
 
-	return ops->bulk(bus, udev, pipe, buffer, length);
+	return ops->bulk(bus, udev, pipe, buffer, length, timeout);
 }
 
 struct int_queue *create_int_queue(struct usb_device *udev,

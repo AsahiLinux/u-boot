@@ -1627,7 +1627,7 @@ int usb_lock_async(struct usb_device *dev, int lock)
 #if CONFIG_IS_ENABLED(DM_USB)
 static int ehci_submit_control_msg(struct udevice *dev, struct usb_device *udev,
 				   unsigned long pipe, void *buffer, int length,
-				   struct devrequest *setup)
+				   struct devrequest *setup, int timeout)
 {
 	debug("%s: dev='%s', udev=%p, udev->dev='%s', portnr=%d\n", __func__,
 	      dev->name, udev, udev->dev->name, udev->portnr);
@@ -1636,7 +1636,8 @@ static int ehci_submit_control_msg(struct udevice *dev, struct usb_device *udev,
 }
 
 static int ehci_submit_bulk_msg(struct udevice *dev, struct usb_device *udev,
-				unsigned long pipe, void *buffer, int length)
+				unsigned long pipe, void *buffer, int length,
+				int timeout)
 {
 	debug("%s: dev='%s', udev=%p\n", __func__, dev->name, udev);
 	return _ehci_submit_bulk_msg(udev, pipe, buffer, length);

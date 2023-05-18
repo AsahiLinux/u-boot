@@ -1262,7 +1262,7 @@ static int xhci_lowlevel_stop(struct xhci_ctrl *ctrl)
 
 static int xhci_submit_control_msg(struct udevice *dev, struct usb_device *udev,
 				   unsigned long pipe, void *buffer, int length,
-				   struct devrequest *setup)
+				   struct devrequest *setup, int timeout)
 {
 	struct usb_device *uhop;
 	struct udevice *hub;
@@ -1294,7 +1294,8 @@ static int xhci_submit_control_msg(struct udevice *dev, struct usb_device *udev,
 }
 
 static int xhci_submit_bulk_msg(struct udevice *dev, struct usb_device *udev,
-				unsigned long pipe, void *buffer, int length)
+				unsigned long pipe, void *buffer, int length,
+				int timeout)
 {
 	debug("%s: dev='%s', udev=%p\n", __func__, dev->name, udev);
 	return _xhci_submit_bulk_msg(udev, pipe, buffer, length);
