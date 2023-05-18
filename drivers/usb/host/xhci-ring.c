@@ -458,10 +458,15 @@ static int event_ready(struct xhci_ctrl *ctrl)
  * @param expected	TRB type expected from Event TRB
  * Return: pointer to event trb
  */
-union xhci_trb *xhci_wait_for_event(struct xhci_ctrl *ctrl, trb_type expected)
+union xhci_trb *xhci_wait_for_event(struct xhci_ctrl *ctrl, trb_type expected,
+				    int timeout)
 {
 	trb_type type;
 	unsigned long ts = get_timer(0);
+
+	/* Fallback in case someone passes in 0 */
+	if (!timeout)
+		timeout = XHCI_TIMEOUT;
 
 	do {
 		union xhci_trb *event = ctrl->event_ring->dequeue;
@@ -492,7 +497,7 @@ union xhci_trb *xhci_wait_for_event(struct xhci_ctrl *ctrl, trb_type expected)
 				le32_to_cpu(event->generic.field[3]));
 
 		xhci_acknowledge_event(ctrl);
-	} while (get_timer(ts) < XHCI_TIMEOUT);
+	} while (get_timer(ts) < timeout);
 
 	if (expected == TRB_TRANSFER)
 		return NULL;
@@ -516,7 +521,7 @@ static void reset_ep(struct usb_device *udev, int ep_index)
 
 	printf("Resetting EP %d...\n", ep_index);
 	xhci_queue_command(ctrl, 0, udev->slot_id, ep_index, TRB_RESET_EP);
-	event = xhci_wait_for_event(ctrl, TRB_COMPLETION);
+	event = xhci_wait_for_event(ctrl, TRB_COMPLETION, XHCI_SYS_TIMEOUT);
 	if (!event)
 		return;
 
@@ -527,7 +532,7 @@ static void reset_ep(struct usb_device *udev, int ep_index)
 	addr = xhci_trb_virt_to_dma(ring->enq_seg,
 		(void *)((uintptr_t)ring->enqueue | ring->cycle_state));
 	xhci_queue_command(ctrl, addr, udev->slot_id, ep_index, TRB_SET_DEQ);
-	event = xhci_wait_for_event(ctrl, TRB_COMPLETION);
+	event = xhci_wait_for_event(ctrl, TRB_COMPLETION, XHCI_SYS_TIMEOUT);
 	if (!event)
 		return;
 
@@ -557,7 +562,7 @@ static void abort_td(struct usb_device *udev, int ep_index)
 
 	xhci_queue_command(ctrl, 0, udev->slot_id, ep_index, TRB_STOP_RING);
 
-	event = xhci_wait_for_event(ctrl, TRB_NONE);
+	event = xhci_wait_for_event(ctrl, TRB_NONE, XHCI_SYS_TIMEOUT);
 	if (!event)
 		return;
 
@@ -570,7 +575,8 @@ static void abort_td(struct usb_device *udev, int ep_index)
 			!= COMP_STOP)));
 		xhci_acknowledge_event(ctrl);
 
-		event = xhci_wait_for_event(ctrl, TRB_COMPLETION);
+		event = xhci_wait_for_event(ctrl, TRB_COMPLETION,
+					    XHCI_SYS_TIMEOUT);
 		if (!event)
 			return;
 		type = TRB_FIELD_TO_TYPE(le32_to_cpu(event->event_cmd.flags));
@@ -589,7 +595,7 @@ static void abort_td(struct usb_device *udev, int ep_index)
 	addr = xhci_trb_virt_to_dma(ring->enq_seg,
 		(void *)((uintptr_t)ring->enqueue | ring->cycle_state));
 	xhci_queue_command(ctrl, addr, udev->slot_id, ep_index, TRB_SET_DEQ);
-	event = xhci_wait_for_event(ctrl, TRB_COMPLETION);
+	event = xhci_wait_for_event(ctrl, TRB_COMPLETION, XHCI_SYS_TIMEOUT);
 	if (!event)
 		return;
 
@@ -635,10 +641,11 @@ static void record_transfer_result(struct usb_device *udev,
  * @param pipe		contains the DIR_IN or OUT , devnum
  * @param length	length of the buffer
  * @param buffer	buffer to be read/written based on the request
+ * @param timeout	timeout in milliseconds
  * Return: returns 0 if successful else -1 on failure
  */
 int xhci_bulk_tx(struct usb_device *udev, unsigned long pipe,
-			int length, void *buffer)
+			int length, void *buffer, int timeout)
 {
 	int num_trbs = 0;
 	struct xhci_generic_trb *start_trb;
@@ -803,7 +810,7 @@ int xhci_bulk_tx(struct usb_device *udev, unsigned long pipe,
 	giveback_first_trb(udev, ep_index, start_cycle, start_trb);
 
 again:
-	event = xhci_wait_for_event(ctrl, TRB_TRANSFER);
+	event = xhci_wait_for_event(ctrl, TRB_TRANSFER, timeout);
 	if (!event) {
 		debug("XHCI bulk transfer timed out, aborting...\n");
 		abort_td(udev, ep_index);
@@ -840,11 +847,12 @@ again:
  * @param req		request type
  * @param length	length of the buffer
  * @param buffer	buffer to be read/written based on the request
+ * @param timeout	timeout in milliseconds
  * Return: returns 0 if successful else error code on failure
  */
 int xhci_ctrl_tx(struct usb_device *udev, unsigned long pipe,
 			struct devrequest *req,	int length,
-			void *buffer)
+			void *buffer, int timeout)
 {
 	int ret;
 	int start_cycle;
@@ -1005,7 +1013,7 @@ int xhci_ctrl_tx(struct usb_device *udev, unsigned long pipe,
 
 	giveback_first_trb(udev, ep_index, start_cycle, start_trb);
 
-	event = xhci_wait_for_event(ctrl, TRB_TRANSFER);
+	event = xhci_wait_for_event(ctrl, TRB_TRANSFER, timeout);
 	if (!event)
 		goto abort;
 	field = le32_to_cpu(event->trans_event.flags);
@@ -1029,7 +1037,7 @@ int xhci_ctrl_tx(struct usb_device *udev, unsigned long pipe,
 	if (GET_COMP_CODE(le32_to_cpu(event->trans_event.transfer_len))
 			== COMP_SHORT_TX) {
 		/* Short data stage, clear up additional status stage event */
-		event = xhci_wait_for_event(ctrl, TRB_TRANSFER);
+		event = xhci_wait_for_event(ctrl, TRB_TRANSFER, XHCI_SYS_TIMEOUT);
 		if (!event)
 			goto abort;
 		BUG_ON(TRB_TO_SLOT_ID(field) != slot_id);
