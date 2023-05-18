@@ -47,7 +47,8 @@ static int sandbox_submit_control(struct udevice *bus,
 				      struct usb_device *udev,
 				      unsigned long pipe,
 				      void *buffer, int length,
-				      struct devrequest *setup)
+				      struct devrequest *setup,
+				      int timeout)
 {
 	struct sandbox_usb_ctrl *ctrl = dev_get_priv(bus);
 	struct udevice *emul;
@@ -67,7 +68,7 @@ static int sandbox_submit_control(struct udevice *bus,
 		}
 	}
 
-	ret = usb_emul_control(emul, udev, pipe, buffer, length, setup);
+	ret = usb_emul_control(emul, udev, pipe, buffer, length, setup, timeout);
 	if (ret < 0) {
 		debug("ret=%d\n", ret);
 		udev->status = ret;
@@ -81,7 +82,8 @@ static int sandbox_submit_control(struct udevice *bus,
 }
 
 static int sandbox_submit_bulk(struct udevice *bus, struct usb_device *udev,
-			       unsigned long pipe, void *buffer, int length)
+			       unsigned long pipe, void *buffer, int length,
+			       int timeout)
 {
 	struct udevice *emul;
 	int ret;
@@ -92,7 +94,7 @@ static int sandbox_submit_bulk(struct udevice *bus, struct usb_device *udev,
 	usbmon_trace(bus, pipe, NULL, emul);
 	if (ret)
 		return ret;
-	ret = usb_emul_bulk(emul, udev, pipe, buffer, length);
+	ret = usb_emul_bulk(emul, udev, pipe, buffer, length, timeout);
 	if (ret < 0) {
 		debug("ret=%d\n", ret);
 		udev->status = ret;
