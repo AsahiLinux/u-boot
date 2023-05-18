@@ -184,9 +184,10 @@ int usb_reset_root_port(struct usb_device *dev);
 #endif
 
 int submit_bulk_msg(struct usb_device *dev, unsigned long pipe,
-			void *buffer, int transfer_len);
+			void *buffer, int transfer_len, int timeout);
 int submit_control_msg(struct usb_device *dev, unsigned long pipe, void *buffer,
-			int transfer_len, struct devrequest *setup);
+			int transfer_len, struct devrequest *setup,
+			int timeout);
 int submit_int_msg(struct usb_device *dev, unsigned long pipe, void *buffer,
 			int transfer_len, int interval, bool nonblock);
 
@@ -709,14 +710,15 @@ struct dm_usb_ops {
 	 */
 	int (*control)(struct udevice *bus, struct usb_device *udev,
 		       unsigned long pipe, void *buffer, int length,
-		       struct devrequest *setup);
+		       struct devrequest *setup, int timeout);
 	/**
 	 * bulk() - Send a bulk message
 	 *
 	 * Parameters are as above.
 	 */
 	int (*bulk)(struct udevice *bus, struct usb_device *udev,
-		    unsigned long pipe, void *buffer, int length);
+		    unsigned long pipe, void *buffer, int length,
+		    int timeout);
 	/**
 	 * interrupt() - Send an interrupt message
 	 *
