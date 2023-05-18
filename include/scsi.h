@@ -158,10 +158,9 @@ struct scsi_cmd {
 #define SCSI_MED_REMOVL	0x1E		/* Prevent/Allow medium Removal (O) */
 #define SCSI_READ6		0x08		/* Read 6-byte (MANDATORY) */
 #define SCSI_READ10		0x28		/* Read 10-byte (MANDATORY) */
-#define SCSI_READ16	0x48
+#define SCSI_READ16	0x88		/* Read 16-byte */
 #define SCSI_RD_CAPAC	0x25		/* Read Capacity (MANDATORY) */
 #define SCSI_RD_CAPAC10	SCSI_RD_CAPAC	/* Read Capacity (10) */
-#define SCSI_RD_CAPAC16	0x9e		/* Read Capacity (16) */
 #define SCSI_RD_DEFECT	0x37		/* Read Defect Data (O) */
 #define SCSI_READ_LONG	0x3E		/* Read Long (O) */
 #define SCSI_REASS_BLK	0x07		/* Reassign Blocks (O) */
@@ -175,14 +174,19 @@ struct scsi_cmd {
 #define SCSI_SEEK10		0x2B		/* Seek 10-Byte (O) */
 #define SCSI_SEND_DIAG	0x1D		/* Send Diagnostics (MANDATORY) */
 #define SCSI_SET_LIMIT	0x33		/* Set Limits (O) */
+#define SCSI_SRV_ACTION_IN	0x9E	/* Service Action In */
+#define SCSI_SRV_ACTION_OUT	0x9F	/* Service Action Out */
 #define SCSI_START_STP	0x1B		/* Start/Stop Unit (O) */
 #define SCSI_SYNC_CACHE	0x35		/* Synchronize Cache (O) */
 #define SCSI_VERIFY		0x2F		/* Verify (O) */
 #define SCSI_WRITE6		0x0A		/* Write 6-Byte (MANDATORY) */
 #define SCSI_WRITE10	0x2A		/* Write 10-Byte (MANDATORY) */
+#define SCSI_WRITE16	0x8A		/* Write 16-byte */
 #define SCSI_WRT_VERIFY	0x2E		/* Write and Verify (O) */
 #define SCSI_WRITE_LONG	0x3F		/* Write Long (O) */
 #define SCSI_WRITE_SAME	0x41		/* Write Same (O) */
+
+#define SCSI_SAI_RD_CAPAC16	0x10	/* Service Action: Read Capacity (16) */
 
 /**
  * enum scsi_cmd_phase - current phase of the SCSI protocol

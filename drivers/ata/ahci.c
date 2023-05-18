@@ -844,15 +844,18 @@ static int ahci_scsi_exec(struct udevice *dev, struct scsi_cmd *pccb)
 	case SCSI_RD_CAPAC10:
 		ret = ata_scsiop_read_capacity10(uc_priv, pccb);
 		break;
-	case SCSI_RD_CAPAC16:
-		ret = ata_scsiop_read_capacity16(uc_priv, pccb);
-		break;
 	case SCSI_TST_U_RDY:
 		ret = ata_scsiop_test_unit_ready(uc_priv, pccb);
 		break;
 	case SCSI_INQUIRY:
 		ret = ata_scsiop_inquiry(uc_priv, pccb);
 		break;
+	case SCSI_SRV_ACTION_IN:
+		if ((pccb->cmd[1] & 0x1f) == SCSI_SAI_RD_CAPAC16) {
+			ret = ata_scsiop_read_capacity16(uc_priv, pccb);
+			break;
+		}
+		/* Fallthrough */
 	default:
 		printf("Unsupport SCSI command 0x%02x\n", pccb->cmd[0]);
 		return -ENOTSUPP;
