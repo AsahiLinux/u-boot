@@ -27,7 +27,11 @@
 #define MAX_EP_CTX_NUM		31
 #define XHCI_ALIGNMENT		64
 /* Generic timeout for XHCI events */
-#define XHCI_TIMEOUT		5000
+#define XHCI_TIMEOUT		1000
+/* Timeout for interrupt messages */
+#define XHCI_INT_TIMEOUT	1000
+/* Timeout for system commands */
+#define XHCI_SYS_TIMEOUT	200
 /* Max number of USB devices for any host controller - limit in section 6.1 */
 #define MAX_HC_SLOTS            256
 /* Section 5.3.3 - MaxPorts */
@@ -1258,11 +1262,13 @@ void xhci_setup_addressable_virt_dev(struct xhci_ctrl *ctrl,
 void xhci_queue_command(struct xhci_ctrl *ctrl, dma_addr_t addr,
 			u32 slot_id, u32 ep_index, trb_type cmd);
 void xhci_acknowledge_event(struct xhci_ctrl *ctrl);
-union xhci_trb *xhci_wait_for_event(struct xhci_ctrl *ctrl, trb_type expected);
+union xhci_trb *xhci_wait_for_event(struct xhci_ctrl *ctrl, trb_type expected,
+				    int timeout);
 int xhci_bulk_tx(struct usb_device *udev, unsigned long pipe,
-		 int length, void *buffer);
+		 int length, void *buffer, int timeout);
 int xhci_ctrl_tx(struct usb_device *udev, unsigned long pipe,
-		 struct devrequest *req, int length, void *buffer);
+		 struct devrequest *req, int length, void *buffer,
+		 int timeout);
 int xhci_check_maxpacket(struct usb_device *udev);
 void xhci_flush_cache(uintptr_t addr, u32 type_len);
 void xhci_inval_cache(uintptr_t addr, u32 type_len);
