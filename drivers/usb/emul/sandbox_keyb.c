@@ -177,7 +177,7 @@ int sandbox_usb_keyb_add_string(struct udevice *dev,
 
 static int sandbox_keyb_control(struct udevice *dev, struct usb_device *udev,
 				unsigned long pipe, void *buff, int len,
-				struct devrequest *setup)
+				struct devrequest *setup, int timeout)
 {
 	debug("pipe=%lx\n", pipe);
 

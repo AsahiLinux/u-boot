@@ -203,7 +203,7 @@ static int sandbox_hub_submit_control_msg(struct udevice *bus,
 					  struct usb_device *udev,
 					  unsigned long pipe,
 					  void *buffer, int length,
-					  struct devrequest *setup)
+					  struct devrequest *setup, int timeout)
 {
 	struct sandbox_hub_priv *priv = dev_get_priv(bus);
 	int ret = 0;

@@ -184,9 +184,10 @@ int usb_reset_root_port(struct usb_device *dev);
 #endif
 
 int submit_bulk_msg(struct usb_device *dev, unsigned long pipe,
-			void *buffer, int transfer_len);
+			void *buffer, int transfer_len, int timeout);
 int submit_control_msg(struct usb_device *dev, unsigned long pipe, void *buffer,
-			int transfer_len, struct devrequest *setup);
+			int transfer_len, struct devrequest *setup,
+			int timeout);
 int submit_int_msg(struct usb_device *dev, unsigned long pipe, void *buffer,
 			int transfer_len, int interval, bool nonblock);
 
@@ -709,14 +710,15 @@ struct dm_usb_ops {
 	 */
 	int (*control)(struct udevice *bus, struct usb_device *udev,
 		       unsigned long pipe, void *buffer, int length,
-		       struct devrequest *setup);
+		       struct devrequest *setup, int timeout);
 	/**
 	 * bulk() - Send a bulk message
 	 *
 	 * Parameters are as above.
 	 */
 	int (*bulk)(struct udevice *bus, struct usb_device *udev,
-		    unsigned long pipe, void *buffer, int length);
+		    unsigned long pipe, void *buffer, int length,
+		    int timeout);
 	/**
 	 * interrupt() - Send an interrupt message
 	 *
@@ -1029,7 +1031,7 @@ int usb_emul_setup_device(struct udevice *dev, struct usb_string *strings,
  */
 int usb_emul_control(struct udevice *emul, struct usb_device *udev,
 		     unsigned long pipe, void *buffer, int length,
-		     struct devrequest *setup);
+		     struct devrequest *setup, int timeout);
 
 /**
  * usb_emul_bulk() - Send a bulk packet to an emulator
@@ -1040,7 +1042,7 @@ int usb_emul_control(struct udevice *emul, struct usb_device *udev,
  * Return: 0 if OK, -ve on error
  */
 int usb_emul_bulk(struct udevice *emul, struct usb_device *udev,
-		  unsigned long pipe, void *buffer, int length);
+		  unsigned long pipe, void *buffer, int length, int timeout);
 
 /**
  * usb_emul_int() - Send an interrupt packet to an emulator
