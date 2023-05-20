@@ -120,6 +120,15 @@ struct usb_kbd_pdata {
 
 extern int __maybe_unused net_busy_flag;
 
+/*
+ * Since we only support one usbkbd device in the iomux,
+ * ignore common keyboard-emulating devices that aren't
+ * real keyboards.
+ */
+const uint16_t vid_blocklist[] = {
+	0x1050, /* Yubico */
+};
+
 /* The period of time between two calls of usb_kbd_testc(). */
 static unsigned long kbd_testc_tms;
 
@@ -465,6 +474,7 @@ static int usb_kbd_probe_dev(struct usb_device *dev, unsigned int ifnum)
 	struct usb_endpoint_descriptor *ep;
 	struct usb_kbd_pdata *data;
 	int epNum;
+	int i;
 
 	if (dev->descriptor.bNumConfigurations != 1)
 		return 0;
@@ -479,6 +489,15 @@ static int usb_kbd_probe_dev(struct usb_device *dev, unsigned int ifnum)
 
 	if (iface->desc.bInterfaceProtocol != USB_PROT_HID_KEYBOARD)
 		return 0;
+
+	for (i = 0; i < ARRAY_SIZE(vid_blocklist); i++) {
+		if (dev->descriptor.idVendor == vid_blocklist[i]) {
+			printf("Ignoring keyboard device 0x%x:0x%x\n",
+			       dev->descriptor.idVendor,
+			       dev->descriptor.idProduct);
+			return 0;
+		}
+	}
 
 	for (epNum = 0; epNum < iface->desc.bNumEndpoints; epNum++) {
 		ep = &iface->ep_desc[epNum];
