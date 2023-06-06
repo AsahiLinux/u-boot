@@ -579,7 +579,7 @@ static char *asahi_esp_devpart(void)
 				break;
 
 			if (info.bootable & PART_EFI_SYSTEM_PARTITION) {
-				if (uuid && strcmp(uuid, info.uuid) == 0) {
+				if (uuid && strcasecmp(uuid, info.uuid) == 0) {
 					part = p;
 					break;
 				}
