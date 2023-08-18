@@ -561,7 +561,6 @@ config BOOTMETH_EFILOADER
 config BOOTMETH_VBE
 	bool "Bootdev support for Verified Boot for Embedded"
 	depends on FIT
-	default y
 	select BOOTMETH_GLOBAL
 	select EVENT
 	help
