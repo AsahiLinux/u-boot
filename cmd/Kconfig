@@ -440,6 +440,7 @@ endif
 
 config CMD_BOOTMENU
 	bool "bootmenu"
+	default y
 	select MENU
 	select CHARSET
 	help
