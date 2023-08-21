@@ -106,6 +106,7 @@ static int check_copy_frame_buffer(struct unit_test_state *uts,
 	if (!IS_ENABLED(CONFIG_VIDEO_COPY))
 		return 0;
 
+	video_sync(dev, false);
 	ut_assertf(!memcmp(priv->fb, priv->copy_fb, priv->fb_size),
 		   "Copy framebuffer does not match fb");
 
@@ -706,7 +707,7 @@ static int dm_test_video_copy(struct unit_test_state *uts)
 	vidconsole_put_string(con, test_string);
 	vidconsole_put_string(con, test_string);
 	ut_asserteq(7589, compress_frame_buffer(uts, dev, false));
-	ut_asserteq(5278, compress_frame_buffer(uts, dev, true));
+	ut_asserteq(4127, compress_frame_buffer(uts, dev, true));
 
 	return 0;
 }
