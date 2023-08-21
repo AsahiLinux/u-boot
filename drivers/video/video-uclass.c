@@ -373,10 +373,12 @@ void video_damage(struct udevice *vid, int x, int y, int width, int height)
 	priv->damage.yend = max(yend, priv->damage.yend);
 }
 
-#if defined(CONFIG_ARM) && !CONFIG_IS_ENABLED(SYS_DCACHE_OFF)
 static void video_flush_dcache(struct udevice *vid)
 {
 	struct video_priv *priv = dev_get_uclass_priv(vid);
+
+	if (CONFIG_IS_ENABLED(SYS_DCACHE_OFF))
+		return;
 
 	if (!priv->flush_dcache)
 		return;
@@ -406,7 +408,6 @@ static void video_flush_dcache(struct udevice *vid)
 		}
 	}
 }
-#endif
 
 static void video_flush_copy(struct udevice *vid)
 {
@@ -445,14 +446,9 @@ int video_sync(struct udevice *vid, bool force)
 			return ret;
 	}
 
-	/*
-	 * flush_dcache_range() is declared in common.h but it seems that some
-	 * architectures do not actually implement it. Is there a way to find
-	 * out whether it exists? For now, ARM is safe.
-	 */
-#if defined(CONFIG_ARM) && !CONFIG_IS_ENABLED(SYS_DCACHE_OFF)
 	video_flush_dcache(vid);
-#elif defined(CONFIG_VIDEO_SANDBOX_SDL)
+
+#if defined(CONFIG_VIDEO_SANDBOX_SDL)
 	static ulong last_sync;
 
 	if (force || get_timer(last_sync) > 100) {
