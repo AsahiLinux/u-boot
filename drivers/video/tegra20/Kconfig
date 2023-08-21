@@ -1,6 +1,7 @@
 config VIDEO_TEGRA20
 	bool "Enable Display Controller support on Tegra20 and Tegra 30"
 	depends on OF_CONTROL
+	imply VIDEO_DAMAGE
 	help
 	   T20/T30 support video output to an attached LCD panel as well as
 	   other options such as HDMI. Only the LCD is supported in U-Boot.
