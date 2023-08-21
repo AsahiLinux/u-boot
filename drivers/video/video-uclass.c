@@ -192,6 +192,7 @@ int video_fill_part(struct udevice *dev, int xstart, int ystart, int xend,
 		}
 		line += priv->line_length;
 	}
+
 	ret = video_sync_copy(dev, start, line);
 	if (ret)
 		return ret;
