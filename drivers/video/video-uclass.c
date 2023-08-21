@@ -347,9 +347,39 @@ void video_set_default_colors(struct udevice *dev, bool invert)
 	priv->colour_bg = video_index_to_colour(priv, back);
 }
 
+/* Notify about changes in the frame buffer */
+void video_damage(struct udevice *vid, int x, int y, int width, int height)
+{
+	struct video_priv *priv = dev_get_uclass_priv(vid);
+	int xend = x + width;
+	int yend = y + height;
+
+	if (!IS_ENABLED(CONFIG_VIDEO_DAMAGE))
+		return;
+
+	if (x > priv->xsize)
+		return;
+
+	if (y > priv->ysize)
+		return;
+
+	if (xend > priv->xsize)
+		xend = priv->xsize;
+
+	if (yend > priv->ysize)
+		yend = priv->ysize;
+
+	/* Span a rectangle across all old and new damage */
+	priv->damage.xstart = min(x, priv->damage.xstart);
+	priv->damage.ystart = min(y, priv->damage.ystart);
+	priv->damage.xend = max(xend, priv->damage.xend);
+	priv->damage.yend = max(yend, priv->damage.yend);
+}
+
 /* Flush video activity to the caches */
 int video_sync(struct udevice *vid, bool force)
 {
+	struct video_priv *priv = dev_get_uclass_priv(vid);
 	struct video_ops *ops = video_get_ops(vid);
 	int ret;
 
@@ -365,15 +395,12 @@ int video_sync(struct udevice *vid, bool force)
 	 * out whether it exists? For now, ARM is safe.
 	 */
 #if defined(CONFIG_ARM) && !CONFIG_IS_ENABLED(SYS_DCACHE_OFF)
-	struct video_priv *priv = dev_get_uclass_priv(vid);
-
 	if (priv->flush_dcache) {
 		flush_dcache_range((ulong)priv->fb,
 				   ALIGN((ulong)priv->fb + priv->fb_size,
 					 CONFIG_SYS_CACHELINE_SIZE));
 	}
 #elif defined(CONFIG_VIDEO_SANDBOX_SDL)
-	struct video_priv *priv = dev_get_uclass_priv(vid);
 	static ulong last_sync;
 
 	if (force || get_timer(last_sync) > 100) {
@@ -381,6 +408,14 @@ int video_sync(struct udevice *vid, bool force)
 		last_sync = get_timer(0);
 	}
 #endif
+
+	if (IS_ENABLED(CONFIG_VIDEO_DAMAGE)) {
+		priv->damage.xstart = priv->xsize;
+		priv->damage.ystart = priv->ysize;
+		priv->damage.xend = 0;
+		priv->damage.yend = 0;
+	}
+
 	return 0;
 }
 
