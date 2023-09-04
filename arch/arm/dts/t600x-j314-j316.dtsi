@@ -419,6 +419,12 @@
 };
 
 / {
+	backlight: gpio-bl {
+		compatible = "gpio-backlight";
+		gpios = <&smc_gpio 19 GPIO_ACTIVE_HIGH>;
+		default-on;
+	};
+
 	sound: sound {
 		compatible = "apple,j314-macaudio", "apple,macaudio";
 
