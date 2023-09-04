@@ -135,6 +135,12 @@
 };
 
 / {
+	backlight: gpio-bl {
+		compatible = "gpio-backlight";
+		gpios = <&smc_gpio 18 GPIO_ACTIVE_HIGH>;
+		default-on;
+	};
+
 	sound {
 		compatible = "apple,j313-macaudio", "apple,macaudio";
 		model = "MacBook Air J313";
