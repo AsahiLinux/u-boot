@@ -409,7 +409,9 @@ wait_epmap:
 	rtk->ap_pwr = APPLE_RTKIT_PWR_STATE_QUIESCED;
 
 	while (rtk->iop_pwr != APPLE_RTKIT_PWR_STATE_ON) {
-		ret = apple_rtkit_poll(rtk, TIMEOUT_1SEC_US);
+		ret = apple_rtkit_poll(rtk, 30 * TIMEOUT_1SEC_US);
+		if (ret == -ETIMEDOUT)
+			printf("%s: timed out whiole waiting on IOP_POWER state ack\n", __func__);
 		if (ret < 0)
 			return ret;
 	}
