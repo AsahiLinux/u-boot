@@ -209,6 +209,14 @@ int draw_cursor_vertically(void **line, struct video_priv *vid_priv,
 
 int console_probe(struct udevice *dev)
 {
+	struct video_fontdata *font;
+	struct video_priv *vid_priv = dev_get_uclass_priv(dev->parent);
+
+	for (font = fonts; font->name; font++) {
+		if (font->height == vid_priv->font_size)
+			return console_set_font(dev, font);
+	}
+
 	return console_set_font(dev, fonts);
 }
 
