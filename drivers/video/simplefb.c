@@ -71,6 +71,17 @@ static int simple_video_probe(struct udevice *dev)
 		return -EINVAL;
 	}
 
+	/* Apple silicon specific hack, should calculate DPI from "panel"
+	 * phandle reference.
+	 */
+	if (uc_priv->xsize > 1920 && uc_priv->ysize > 1080)
+		uc_priv->font_size = 32;
+	/*
+	panel_node = fdtdec_lookup_phandle(blob_, node, "panel");
+	if (panel_node > 0) {
+		uint dpi = fdtdec_get_uint(blob, node, "width-mm");
+	}
+	*/
 	return 0;
 }
 
