@@ -40,10 +40,21 @@ static int get_bootable(dos_partition_t *p)
 {
 	int ret = 0;
 
-	if (p->sys_ind == 0xef)
+	switch (p->sys_ind) {
+	case 0x01:
+	case 0x06:
+	case 0x0b:
+	case 0x0c:
+	case 0xef:
 		ret |= PART_EFI_SYSTEM_PARTITION;
+		break;
+	default:
+		break;
+	}
+
 	if (p->boot_ind == 0x80)
 		ret |= PART_BOOTABLE;
+
 	return ret;
 }
 
