@@ -12,6 +12,7 @@
 #include <mapmem.h>
 #include <dm.h>
 #include <fs.h>
+#include <part.h>
 #include <efi_api.h>
 #include <efi_load_initrd.h>
 #include <efi_loader.h>
@@ -23,6 +24,99 @@
 /* GUID used by Linux to identify the LoadFile2 protocol with the initrd */
 const efi_guid_t efi_lf2_initrd_guid = EFI_INITRD_MEDIA_GUID;
 #endif
+
+/* We need to pass a blk device in and return a location, or a loaded DT */
+char *find_fdt_location(void)
+{
+	const char *fdt_filename;
+	/* FIXME: dynamic size */
+	char fdt_fullpath[60];
+	const char *prefix;
+	struct udevice *blk;
+	/* FIXME: Fedora really only cares about first 2*/
+	int MAX_PART = 8;
+	int part;
+	struct disk_partition info;
+	int fdtext;
+	int ret;
+	int retfdt;
+	int retload;
+	loff_t fdtsize;
+	ulong pbraddr;
+	loff_t len_read;
+
+	/* step one logic: we have the DT name we're hunting for */
+	fdt_filename = env_get("fdtfile");
+	if (fdt_filename) {
+		log_debug("FFL: We're looking for the DTB now!: %s\n", fdt_filename);
+
+		/* probe all block disks to search for fdt */
+		uclass_foreach_dev_probe(UCLASS_BLK, blk) {
+			log_debug("FFL: dev name: %s\n", blk->name);
+			struct blk_desc *desc;
+			desc = dev_get_uclass_plat(blk);
+			/* we should get a partition count here for looping */
+			/* For loop for each partition */
+			/* Need to also deal with zero part whole disk - part_get_info_whole_disk */
+			for (part = 1; part <= MAX_PART; part++) {
+				log_debug("FFL: part num: %d\n", part);
+				ret = part_get_info(desc, part, &info);
+				/* if we have partition check it for DT */
+				if (ret < 0) {
+					log_debug("FFL: no partition\n");
+				} else {
+					log_debug("FFL: we have a partition\n");
+					/* we should have a case/for prefix in =/ /dtb/ /dtb/current/ */
+					/* but for now we hard code if for Fedora */
+					prefix = "/dtb";
+					snprintf(fdt_fullpath, sizeof(fdt_fullpath), "%s/%s", prefix, fdt_filename);
+					log_debug("FFL: full name: %s\n", fdt_fullpath);
+					/* search for DT on partition and either find and exit or continue */
+					if (fs_set_blk_dev_with_part(desc, part) == 0){
+						log_debug("FFL: set block part pass\n");
+						fdtext = fs_exists(fdt_fullpath);
+						if (fdtext) {
+							/* we have a fdt!*/
+							if (fs_set_blk_dev_with_part(desc, part) == 0){
+								retfdt = fs_size(fdt_fullpath, &fdtsize);
+								if (retfdt == 0) {
+									log_debug("FFL: we have found a DT on disk, size %lld\n", fdtsize);
+									/* Get the main fdt and map it */
+									const char *fdt_pbr;
+									fdt_pbr = env_get("fdt_addr_r");
+									pbraddr = hextoul(fdt_pbr, NULL);
+									log_debug("FFL: fdr addr: %s\n", fdt_pbr);
+									if (fs_set_blk_dev_with_part(desc, part) == 0){
+										retload = fs_read(fdt_fullpath, pbraddr, 0, fdtsize, &len_read);
+										if (retload == 0) {
+											log_debug("FFL: we have a loaded DT, size %lld we can return\n", fdtsize);
+											log_info("Found DTB: %s\n", fdt_filename);
+											return fdt_pbr;
+										} else {
+											log_debug("FFL: DT load failed\n");
+										}
+									}
+								} else {
+									log_debug("FFL: we DON'T have a DT with size\n");
+								}
+							}
+						} else {
+							/* we don't have a fdt!*/
+							log_debug("FFL: we DON'T have a DT\n");
+						}
+					} else {
+						log_debug("FFL: set block part FAIL\n");
+					}
+				}
+			}
+		}
+        } else {
+		log_debug("FFL: fdt_filename not defined!!\n");
+	}
+
+	/* We didn't find a FDT */
+	return NULL;
+}
 
 /**
  * efi_create_current_boot_var() - Return Boot#### name were #### is replaced by
@@ -432,11 +526,20 @@ efi_status_t efi_install_fdt(void *fdt)
 		/* Look for device tree that is already installed */
 		if (efi_get_configuration_table(&efi_guid_fdt))
 			return EFI_SUCCESS;
+		/* Check if there is device tree loaded from disk */
+		fdt_opt = find_fdt_location();
+		if (fdt_opt)
+			log_debug("Found DTB on disk\n");
 		/* Check if there is a hardware device tree */
-		fdt_opt = env_get("fdt_addr");
+		if (!fdt_opt) {
+			fdt_opt = env_get("fdt_addr");
+			if (fdt_opt)
+				log_info("Found DTB: Prior firmware\n");
+		}
 		/* Use our own device tree as fallback */
 		if (!fdt_opt) {
 			fdt_opt = env_get("fdtcontroladdr");
+			log_debug("Using DT from U-Boot\n");
 			if (!fdt_opt) {
 				log_err("ERROR: need device tree\n");
 				return EFI_NOT_FOUND;

@@ -144,6 +144,7 @@ static int do_bootefi(struct cmd_tbl *cmdtp, int flag, int argc,
 	if (argc > 2) {
 		uintptr_t fdt_addr;
 
+		/* Do we need to run find_fdt_location here?*/
 		fdt_addr = hextoul(argv[2], NULL);
 		fdt = map_sysmem(fdt_addr, 0);
 	} else {

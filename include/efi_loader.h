@@ -524,6 +524,8 @@ struct efi_register_notify_event {
 	struct list_head handles;
 };
 
+/* Find the FDT on any partition */
+char *find_fdt_location(void);
 /* called at pre-initialization */
 int efi_init_early(void);
 /* Initialize efi execution environment */

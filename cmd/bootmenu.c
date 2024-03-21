@@ -448,6 +448,11 @@ static void handle_uefi_bootnext(void)
 	u16 bootnext;
 	efi_status_t ret;
 	efi_uintn_t size;
+	const char *fdt_opt;
+
+	/* Find the DTB on disk */
+	log_debug("We will load the DTB\n");
+	fdt_opt = find_fdt_location();
 
 	/* Initialize EFI drivers */
 	ret = efi_init_obj_list();
