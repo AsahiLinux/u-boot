@@ -45,6 +45,15 @@
 	bootph-pre-ram;
 };
 
+&u2phy_host {
+	phy-supply = <&vcc_host_5v>;
+};
+
+&vcc_host_5v {
+	/delete-property/ regulator-always-on;
+	/delete-property/ regulator-boot-on;
+};
+
 /* Need this and all the pinctrl/gpio stuff above to set pinmux */
 &vcc_sd {
 	bootph-pre-ram;

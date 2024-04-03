@@ -61,10 +61,6 @@
 	u-boot,spl-fifo-mode;
 };
 
-&usb20_otg {
-	hnp-srp-disable;
-};
-
 &spi0 {
 	bootph-all;
 };
