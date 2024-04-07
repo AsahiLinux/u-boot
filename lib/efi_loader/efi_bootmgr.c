@@ -14,6 +14,7 @@
 #include <log.h>
 #include <malloc.h>
 #include <net.h>
+#include <part.h>
 #include <efi_default_filename.h>
 #include <efi_loader.h>
 #include <efi_variable.h>
@@ -306,6 +307,7 @@ err:
 static efi_status_t fill_default_file_path(struct udevice *blk,
 					   struct efi_device_path **dp)
 {
+	struct blk_desc *desc = dev_get_uclass_plat(blk);
 	efi_status_t ret;
 	struct udevice *partition;
 
@@ -313,6 +315,26 @@ static efi_status_t fill_default_file_path(struct udevice *blk,
 	ret = search_default_file(blk, dp);
 	if (ret == EFI_SUCCESS)
 		return ret;
+
+	/* try EFI system partition */
+	if (desc->uclass_id == efi_system_partition.uclass_id &&
+	    desc->devnum == efi_system_partition.devnum) {
+		device_foreach_child(partition, blk) {
+			struct disk_part *part;
+			enum uclass_id id;
+
+			id = device_get_uclass_id(partition);
+			if (id != UCLASS_PARTITION)
+				continue;
+
+			part = dev_get_uclass_plat(partition);
+			if (part->partnum == efi_system_partition.part) {
+				ret = search_default_file(partition, dp);
+				if (ret == EFI_SUCCESS)
+					return ret;
+			}
+		}
+	}
 
 	/* try the partitions */
 	device_foreach_child(partition, blk) {
