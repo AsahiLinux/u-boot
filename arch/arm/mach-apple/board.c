@@ -709,7 +709,7 @@ void build_mem_map(void)
 	int i;
 
 	if (of_machine_is_compatible("apple,t8103") ||
-	    of_machine_is_compatible("apple,t8112"))
+		of_machine_is_compatible("apple,t8112"))
 		mem_map = t8103_mem_map;
 	else if (of_machine_is_compatible("apple,t6000") ||
 		 of_machine_is_compatible("apple,t6001"))
@@ -845,6 +845,8 @@ char *env_fat_get_dev_part(void)
 int board_late_init(void)
 {
 	struct lmb lmb;
+	int root_node_offset;
+	const char* serial_number;
 	u32 status = 0;
 
 	status |= env_set("storage_interface",
@@ -861,10 +863,25 @@ int board_late_init(void)
 	status |= env_set_hex("kernel_addr_r", lmb_alloc(&lmb, SZ_128M, SZ_2M));
 	status |= env_set_hex("ramdisk_addr_r", lmb_alloc(&lmb, SZ_1G, SZ_2M));
 	status |= env_set_hex("kernel_comp_addr_r",
-			      lmb_alloc(&lmb, KERNEL_COMP_SIZE, SZ_2M));
+				  lmb_alloc(&lmb, KERNEL_COMP_SIZE, SZ_2M));
 	status |= env_set_hex("kernel_comp_size", KERNEL_COMP_SIZE);
 	status |= env_set_hex("scriptaddr", lmb_alloc(&lmb, SZ_4M, SZ_2M));
 	status |= env_set_hex("pxefile_addr_r", lmb_alloc(&lmb, SZ_4M, SZ_2M));
+	
+	root_node_offset = fdt_path_offset((const void*) fw_dtb_pointer, "/");
+	if (root_node_offset < 0) {
+		log_warning("late_init: fdt_path_offset() for root_node_offset returned %s\n", fdt_strerror(root_node_offset));
+		status = 1;
+	} else {
+		serial_number = fdt_getprop((const void*) fw_dtb_pointer, root_node_offset, "serial-number", NULL);
+		if(serial_number) {
+			status |= env_set("serial#", serial_number);
+			log_info("late_init: serial number is %s\n", serial_number);
+		} else {
+			log_warning("late_init: Failed to get serial number from device tree\n");
+			status = 1;
+		}
+	}
 
 	if (status)
 		log_warning("late_init: Failed to set run time variables\n");
