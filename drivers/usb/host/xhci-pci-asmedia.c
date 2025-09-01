@@ -184,8 +184,8 @@ static int asmedia_wait_reset(struct udevice *pdev, struct xhci_hcor *hcor)
 	return ret;
 }
 
-static u8 asmedia_read_reg(struct udevice *pdev, struct xhci_hccr *hccr,
-			   u16 addr) {
+static int asmedia_read_reg(struct udevice *pdev, struct xhci_hccr *hccr,
+			    u16 addr, u8 *val) {
 	void __iomem *regs = (void *)hccr;
 	u8 status;
 	int ret;
@@ -197,7 +197,7 @@ static u8 asmedia_read_reg(struct udevice *pdev, struct xhci_hccr *hccr,
 	if (ret) {
 		dev_err(pdev,
 			"Read reg wait timed out ([%04x])\n", addr);
-		return ~0;
+		return ret;
 	}
 
 	writew_relaxed(addr, regs + ASMT_REG_ADDR);
@@ -209,13 +209,14 @@ static u8 asmedia_read_reg(struct udevice *pdev, struct xhci_hccr *hccr,
 	if (ret) {
 		dev_err(pdev,
 			"Read reg addr timed out ([%04x])\n", addr);
-		return ~0;
+		return ret;
 	}
 
-	return readb_relaxed(regs + ASMT_REG_RDATA);
+	*val = readb_relaxed(regs + ASMT_REG_RDATA);
+	return 0;
 }
 
-static void asmedia_write_reg(struct udevice *pdev, struct xhci_hccr *hccr,
+static int asmedia_write_reg(struct udevice *pdev, struct xhci_hccr *hccr,
 			      u16 addr, u8 data, bool wait) {
 	void __iomem *regs = (void *)hccr;
 	u8 status;
@@ -227,10 +228,12 @@ static void asmedia_write_reg(struct udevice *pdev, struct xhci_hccr *hccr,
 				       !(status & ASMT_REG_STATUS_BUSY),
 				       1000, TIMEOUT_USEC);
 
-	if (ret)
+	if (ret) {
 		dev_err(pdev,
 			"Write reg addr timed out ([%04x] = %02x)\n",
 			addr, data);
+		return ret;
+	}
 
 	writeb_relaxed(data, regs + ASMT_REG_WDATA);
 
@@ -238,16 +241,21 @@ static void asmedia_write_reg(struct udevice *pdev, struct xhci_hccr *hccr,
 				       !(status & ASMT_REG_STATUS_BUSY),
 				       1000, TIMEOUT_USEC);
 
-	if (ret)
+	if (ret) {
 		dev_err(pdev,
 			"Write reg data timed out ([%04x] = %02x)\n",
 			addr, data);
+		return ret;
+	}
 
 	if (!wait)
-		return;
+		return 0;
 
 	for (i = 0; i < TIMEOUT_USEC; i++) {
-		if (asmedia_read_reg(pdev, hccr, addr) == data)
+		ret = asmedia_read_reg(pdev, hccr, addr, &status);
+		if (ret)
+			return ret;
+		if (status == data)
 			break;
 	}
 
@@ -255,7 +263,10 @@ static void asmedia_write_reg(struct udevice *pdev, struct xhci_hccr *hccr,
 		dev_err(pdev,
 			"Verify register timed out ([%04x] = %02x)\n",
 			addr, data);
+		return -ETIMEDOUT;
 	}
+
+	return 0;
 }
 
 static int asmedia_load_fw(struct udevice *pdev, struct xhci_hccr *hccr,
@@ -269,11 +280,15 @@ static int asmedia_load_fw(struct udevice *pdev, struct xhci_hccr *hccr,
 	size_t words = fwsize >> 1;
 	int ret, i;
 
-	asmedia_write_reg(pdev, hccr, ASMT_MMIO_CPU_MODE_NEXT,
-			  ASMT_MMIO_CPU_MODE_HALFSPEED, false);
+	ret = asmedia_write_reg(pdev, hccr, ASMT_MMIO_CPU_MODE_NEXT,
+				ASMT_MMIO_CPU_MODE_HALFSPEED, false);
+	if (ret)
+		return ret;
 
-	asmedia_write_reg(pdev,hccr, ASMT_MMIO_CPU_EXEC_CTRL,
-			  ASMT_MMIO_CPU_EXEC_CTRL_RESET, false);
+	ret = asmedia_write_reg(pdev,hccr, ASMT_MMIO_CPU_EXEC_CTRL,
+				ASMT_MMIO_CPU_EXEC_CTRL_RESET, false);
+	if (ret)
+		return ret;
 
 	ret = asmedia_wait_reset(pdev, hcor);
 	if (ret) {
@@ -281,11 +296,15 @@ static int asmedia_load_fw(struct udevice *pdev, struct xhci_hccr *hccr,
 		return ret;
 	}
 
-	asmedia_write_reg(pdev, hccr, ASMT_MMIO_CPU_EXEC_CTRL,
-			  ASMT_MMIO_CPU_EXEC_CTRL_HALT, false);
+	ret = asmedia_write_reg(pdev, hccr, ASMT_MMIO_CPU_EXEC_CTRL,
+				ASMT_MMIO_CPU_EXEC_CTRL_HALT, false);
+	if (ret)
+		return ret;
 
-	asmedia_write_reg(pdev, hccr, ASMT_MMIO_CPU_MISC,
-			  ASMT_MMIO_CPU_MISC_CODE_RAM_WR, true);
+	ret = asmedia_write_reg(pdev, hccr, ASMT_MMIO_CPU_MISC,
+				ASMT_MMIO_CPU_MISC_CODE_RAM_WR, true);
+	if (ret)
+		return ret;
 
 	dm_pci_write_config8(pdev, ASMT_CFG_SRAM_ACCESS,
 			     ASMT_CFG_SRAM_ACCESS_ENABLE);
@@ -321,13 +340,19 @@ static int asmedia_load_fw(struct udevice *pdev, struct xhci_hccr *hccr,
 
 	dm_pci_write_config8(pdev, ASMT_CFG_SRAM_ACCESS, 0);
 
-	asmedia_write_reg(pdev, hccr, ASMT_MMIO_CPU_MISC, 0, true);
+	ret = asmedia_write_reg(pdev, hccr, ASMT_MMIO_CPU_MISC, 0, true);
+	if (ret)
+		return ret;
 
-	asmedia_write_reg(pdev, hccr, ASMT_MMIO_CPU_MODE_NEXT,
-			  ASMT_MMIO_CPU_MODE_RAM |
-			  ASMT_MMIO_CPU_MODE_HALFSPEED, false);
+	ret = asmedia_write_reg(pdev, hccr, ASMT_MMIO_CPU_MODE_NEXT,
+				ASMT_MMIO_CPU_MODE_RAM |
+				ASMT_MMIO_CPU_MODE_HALFSPEED, false);
+	if (ret)
+		return ret;
 
-	asmedia_write_reg(pdev, hccr, ASMT_MMIO_CPU_EXEC_CTRL, 0, false);
+	ret = asmedia_write_reg(pdev, hccr, ASMT_MMIO_CPU_EXEC_CTRL, 0, false);
+	if (ret)
+		return ret;
 
 	ret = asmedia_wait_reset(pdev, hcor);
 	if (ret) {
