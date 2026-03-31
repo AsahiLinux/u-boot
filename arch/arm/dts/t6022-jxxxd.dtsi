@@ -13,6 +13,7 @@
 	aliases {
 		dcpext4 = &dcpext0_die1;
 		disp0 = &display;
+		sio1 = &sio_die1;
 	};
 };
 
@@ -53,20 +54,23 @@
 	apple,dptx-die = <1>;
 };
 
-/* delete missing dcp0/disp0 */
+&dpaudio1_die1 {
+	status = "okay";
+};
 
+/* delete missing dcp0/disp0 */
 /delete-node/ &disp0_dart;
 /delete-node/ &dcp_dart;
 /delete-node/ &dcp_mbox;
 /delete-node/ &dcp;
+/delete-node/ &dpaudio0;
 
-/* delete unused always-on power-domains */
+/* delete power-domains for missing disp0 / disp0_die1 */
 /delete-node/ &ps_disp0_cpu0;
 /delete-node/ &ps_disp0_fe;
 
 /delete-node/ &ps_disp0_cpu0_die1;
 /delete-node/ &ps_disp0_fe_die1;
-
 
 /* USB Type C */
 &i2c0 {
@@ -88,14 +92,14 @@
 				#size-cells = <0>;
 				port@0 {
 					reg = <0>;
-					typec4_con_hs: endpoint {
-						remote-endpoint = <&typec4_usb_hs>;
+					typec4_connector_hs: endpoint {
+						remote-endpoint = <&dwc3_4_hs>;
 					};
 				};
 				port@1 {
 					reg = <1>;
-					typec4_con_ss: endpoint {
-						remote-endpoint = <&typec4_usb_ss>;
+					typec4_connector_ss: endpoint {
+						remote-endpoint = <&atcphy4_typec_lanes>;
 					};
 				};
 			};
@@ -120,14 +124,14 @@
 				#size-cells = <0>;
 				port@0 {
 					reg = <0>;
-					typec5_con_hs: endpoint {
-						remote-endpoint = <&typec5_usb_hs>;
+					typec5_connector_hs: endpoint {
+						remote-endpoint = <&dwc3_5_hs>;
 					};
 				};
 				port@1 {
 					reg = <1>;
-					typec5_con_ss: endpoint {
-						remote-endpoint = <&typec5_usb_ss>;
+					typec5_connector_ss: endpoint {
+						remote-endpoint = <&atcphy5_typec_lanes>;
 					};
 				};
 			};
@@ -135,36 +139,89 @@
 	};
 };
 
+
 /* USB controllers on die 1 */
 &dwc3_0_die1 {
-	port {
-		typec4_usb_hs: endpoint {
-			remote-endpoint = <&typec4_con_hs>;
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@0 {
+			reg = <0>;
+			dwc3_4_hs: endpoint {
+				remote-endpoint = <&typec4_connector_hs>;
+			};
+		};
+
+		port@1 {
+			reg = <1>;
+			dwc3_4_ss: endpoint {
+				remote-endpoint = <&atcphy4_usb3>;
+			};
 		};
 	};
 };
 
 &dwc3_1_die1 {
-	port {
-		typec5_usb_hs: endpoint {
-			remote-endpoint = <&typec5_con_hs>;
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@0 {
+			reg = <0>;
+			dwc3_5_hs: endpoint {
+				remote-endpoint = <&typec5_connector_hs>;
+			};
+		};
+
+		port@1 {
+			reg = <1>;
+			dwc3_5_ss: endpoint {
+				remote-endpoint = <&atcphy5_usb3>;
+			};
 		};
 	};
 };
 
 /* Type-C PHYs */
 &atcphy0_die1 {
-	port {
-		typec4_usb_ss: endpoint {
-			remote-endpoint = <&typec4_con_ss>;
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@0 {
+			reg = <0>;
+			atcphy4_typec_lanes: endpoint {
+				remote-endpoint = <&typec4_connector_ss>;
+			};
+		};
+
+		port@1 {
+			reg = <1>;
+			atcphy4_usb3: endpoint {
+				remote-endpoint = <&dwc3_4_ss>;
+			};
 		};
 	};
 };
 
 &atcphy1_die1 {
-	port {
-		typec5_usb_ss: endpoint {
-			remote-endpoint = <&typec5_con_ss>;
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@0 {
+			reg = <0>;
+			atcphy5_typec_lanes: endpoint {
+				remote-endpoint = <&typec5_connector_ss>;
+			};
+		};
+
+		port@1 {
+			reg = <1>;
+			atcphy5_usb3: endpoint {
+				remote-endpoint = <&dwc3_5_ss>;
+			};
 		};
 	};
 };

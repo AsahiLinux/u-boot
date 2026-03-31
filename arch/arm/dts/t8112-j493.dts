@@ -16,12 +16,17 @@
 / {
 	compatible = "apple,j493", "apple,t8112", "apple,arm-platform";
 	model = "Apple MacBook Pro (13-inch, M2, 2022)";
+	chassis-type = "laptop";
 
+	/*
+	 * All of those are used by the bootloader to pass calibration
+	 * blobs and other device-specific properties
+	 */
 	aliases {
 		bluetooth0 = &bluetooth0;
-		wifi0 = &wifi0;
 		keyboard = &keyboard;
 		touchbar0 = &touchbar0;
+		wifi0 = &wifi0;
 	};
 
 	led-controller {
@@ -37,6 +42,16 @@
 	};
 };
 
+/*
+ * The driver depends on boot loader initialized state which resets when this
+ * power-domain is powered off. This happens on suspend or when the driver is
+ * missing during boot. Mark the domain as always on until the driver can
+ * handle this.
+ */
+&ps_dispdfr_be {
+	apple,always-on;
+};
+
 &dcp {
 	panel: panel {
 		compatible = "apple,panel-j493", "apple,panel";
@@ -46,14 +61,37 @@
 	};
 };
 
+&framebuffer0 {
+	panel = <&panel>;
+	post-init-providers = <&panel>;
+};
+
 &display_dfr {
+	status = "okay";
+};
+
+&dfr_mipi_out {
+	dfr_mipi_out_panel: endpoint@0 {
+		reg = <0>;
+		remote-endpoint = <&dfr_panel_in>;
+	};
+};
+
+&displaydfr_mipi {
 	status = "okay";
 	#address-cells = <1>;
 	#size-cells = <0>;
 
 	dfr_panel: panel@0 {
-		compatible = "apple,summit";
+		compatible = "apple,j493-summit", "apple,summit";
 		reg = <0>;
+		max-brightness = <255>;
+
+		port {
+			dfr_panel_in: endpoint {
+				remote-endpoint = <&dfr_mipi_out_panel>;
+			};
+		};
 	};
 };
 
@@ -177,6 +215,45 @@
 	status = "okay";
 };
 
+&spi3 {
+	status = "okay";
+
+	touchbar0: touchbar@0 {
+		compatible = "apple,j493-touchbar";
+		reg = <0>;
+		spi-max-frequency = <8000000>;
+		spi-cs-setup-delay-ns = <2000>;
+		spi-cs-hold-delay-ns = <2000>;
+		reset-gpios = <&pinctrl_ap 170 GPIO_ACTIVE_LOW>;
+		interrupts-extended = <&pinctrl_ap 174 IRQ_TYPE_EDGE_FALLING>;
+		firmware-name = "apple/dfrmtfw-j493.bin";
+		touchscreen-size-x = <23045>;
+		touchscreen-size-y = <640>;
+		touchscreen-inverted-y;
+	};
+};
+
+&aop_mbox {
+       status = "okay";
+};
+
+&aop_dart {
+       status = "okay";
+};
+
+&aop_admac {
+       status = "okay";
+};
+
+&aop {
+	status = "okay";
+};
+
+&aop_audio {
+	apple,chassis-name = "J493";
+	apple,machine-kind = "MacBook Pro";
+};
+
 / {
 	sound {
 		compatible = "apple,j493-macaudio", "apple,macaudio";
@@ -205,25 +282,6 @@
 			};
 		};
 	};
-};
-
-&spi3 {
-	status = "okay";
-
-	touchbar0: touchbar@0 {
-		compatible = "apple,j493-touchbar", "apple,z2-touchbar", "apple,z2-multitouch";
-		reg = <0>;
-		label = "Mac14,7 Touch Bar";
-		spi-max-frequency = <8000000>;
-		spi-cs-setup-delay-ns = <2000>;
-		spi-cs-hold-delay-ns = <2000>;
-
-		reset-gpios = <&pinctrl_ap 170 GPIO_ACTIVE_LOW>;
-		interrupts-extended = <&pinctrl_ap 174 IRQ_TYPE_EDGE_FALLING>;
-		firmware-name = "apple/dfrmtfw-j493.bin";
-		touchscreen-size-x = <23045>;
-		touchscreen-size-y = <640>;
-       };
 };
 
 &mtp {
@@ -266,3 +324,6 @@
 &isp {
 	apple,platform-id = <6>;
 };
+
+#include "hwmon-fan.dtsi"
+#include "hwmon-laptop.dtsi"

@@ -20,7 +20,7 @@
 /delete-node/ &pmgr_south;
 
 &gpu {
-	compatible = "apple,agx-t6020", "apple,agx-g14x";
+	compatible = "apple,agx-t6020", "apple,agx-g14x", "apple,agx-g14s";
 
 	apple,avg-power-filter-tc-ms = <302>;
 	apple,avg-power-ki-only = <2.6375>;

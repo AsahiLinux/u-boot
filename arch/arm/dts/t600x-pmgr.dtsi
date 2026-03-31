@@ -826,7 +826,7 @@
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
 		label = DIE_LABEL(sio_cpu);
-		power-domains = <&DIE_NODE(ps_sio)>;
+		power-domains = <&DIE_NODE(ps_sio) &DIE_NODE(ps_uart_p) &DIE_NODE(ps_spi_p) &DIE_NODE(ps_audio_p)>;
 	};
 
 	DIE_NODE(ps_fpwm0): power-controller@190 {
@@ -1469,7 +1469,7 @@
 		reg = <0x4000 4>;
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
-		label = "isp_set0";
+		label = DIE_LABEL(isp_set0);
 	};
 
 	DIE_NODE(ps_isp_set1): power-controller@4010 {
@@ -1477,7 +1477,7 @@
 		reg = <0x4010 4>;
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
-		label = "isp_set1";
+		label = DIE_LABEL(isp_set1);
 	};
 
 	DIE_NODE(ps_isp_fe): power-controller@4008 {
@@ -1485,7 +1485,7 @@
 		reg = <0x4008 4>;
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
-		label = "isp_set2";
+		label = DIE_LABEL(ps_isp_fe);
 	};
 
 	DIE_NODE(ps_isp_set3): power-controller@4028 {
@@ -1493,7 +1493,7 @@
 		reg = <0x4028 4>;
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
-		label = "isp_set3";
+		label = DIE_LABEL(isp_set3);
 	};
 
 	DIE_NODE(ps_isp_set4): power-controller@4020 {
@@ -1501,7 +1501,7 @@
 		reg = <0x4020 4>;
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
-		label = "isp_set4";
+		label = DIE_LABEL(isp_set4);
 	};
 
 	DIE_NODE(ps_isp_set5): power-controller@4030 {
@@ -1509,7 +1509,7 @@
 		reg = <0x4030 4>;
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
-		label = "isp_set5";
+		label = DIE_LABEL(isp_set5);
 	};
 
 	DIE_NODE(ps_isp_set6): power-controller@4018 {
@@ -1517,7 +1517,7 @@
 		reg = <0x4018 4>;
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
-		label = "isp_set6";
+		label = DIE_LABEL(isp_set6);
 	};
 
 	DIE_NODE(ps_isp_set7): power-controller@4038 {
@@ -1525,7 +1525,7 @@
 		reg = <0x4038 4>;
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
-		label = "isp_set7";
+		label = DIE_LABEL(isp_set7);
 	};
 
 	DIE_NODE(ps_isp_set8): power-controller@4040 {
@@ -1533,7 +1533,7 @@
 		reg = <0x4040 4>;
 		#power-domain-cells = <0>;
 		#reset-cells = <0>;
-		label = "isp_set8";
+		label = DIE_LABEL(isp_set8);
 	};
 };
 

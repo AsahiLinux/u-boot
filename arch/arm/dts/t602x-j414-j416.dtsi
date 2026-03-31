@@ -23,6 +23,10 @@
 	};
 };
 
+&framebuffer0 {
+	power-domains = <&ps_disp0_cpu0>, <&ps_dptx_phy_ps>;
+};
+
 /* HACK: keep dptx_phy_ps power-domain always-on
  *       it is unclear how to sequence with dcp for the integrated display
  */

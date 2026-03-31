@@ -16,11 +16,12 @@
 / {
 	compatible = "apple,j413", "apple,t8112", "apple,arm-platform";
 	model = "Apple MacBook Air (13-inch, M2, 2022)";
+	chassis-type = "laptop";
 
 	aliases {
 		bluetooth0 = &bluetooth0;
-		wifi0 = &wifi0;
 		keyboard = &keyboard;
+		wifi0 = &wifi0;
 	};
 
 	led-controller {
@@ -44,6 +45,11 @@
 		adj-height-mm = <181>;
 		apple,max-brightness = <525>;
 	};
+};
+
+&framebuffer0 {
+	panel = <&panel>;
+	post-init-providers = <&panel>;
 };
 
 /*
@@ -173,6 +179,27 @@
 	status = "okay";
 };
 
+&aop_mbox {
+       status = "okay";
+};
+
+&aop_dart {
+       status = "okay";
+};
+
+&aop_admac {
+       status = "okay";
+};
+
+&aop {
+	status = "okay";
+};
+
+&aop_audio {
+	apple,chassis-name = "J413";
+	apple,machine-kind = "MacBook Air";
+};
+
 / {
 	sound {
 		compatible = "apple,j413-macaudio", "apple,macaudio";
@@ -244,3 +271,5 @@
 	apple,platform-id = <14>;
 	apple,temporal-filter = <1>;
 };
+
+#include "hwmon-laptop.dtsi"

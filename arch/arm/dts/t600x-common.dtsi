@@ -460,7 +460,7 @@
 		compatible = "fixed-clock";
 		#clock-cells = <0>;
 		clock-frequency = <0>;
-		clock-output-names = "clk_dispext0";
+		clock-output-names = "clk_dispext1";
 	};
 
 	clk_dispext1_die1: clock-dispext1_die1 {
@@ -484,19 +484,28 @@
 		#size-cells = <2>;
 		ranges;
 
+		gpu_globals: globals {
+			status = "disabled";
+		};
+
+		gpu_hw_cal_a: hw-cal-a {
+			status = "disabled";
+		};
+
+		gpu_hw_cal_b: hw-cal-b {
+			status = "disabled";
+		};
+
 		uat_handoff: uat-handoff {
 			reg = <0 0 0 0>;
-			no-map;
 		};
 
 		uat_pagetables: uat-pagetables {
 			reg = <0 0 0 0>;
-			no-map;
 		};
 
 		uat_ttbs: uat-ttbs {
 			reg = <0 0 0 0>;
-			no-map;
 		};
 	};
 };

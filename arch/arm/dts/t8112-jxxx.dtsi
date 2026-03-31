@@ -16,7 +16,6 @@
 		dcp = &dcp;
 		disp0 = &display;
 		disp0_piodma = &disp0_piodma;
-		nvram = &nvram;
 		serial0 = &serial0;
 		serial2 = &serial2;
 	};
@@ -35,13 +34,6 @@
 			/* Format properties will be added by loader */
 			status = "disabled";
 		};
-	};
-
-	reserved-memory {
-		#address-cells = <2>;
-		#size-cells = <2>;
-		ranges;
-		/* To be filled by loader */
 	};
 
 	memory@800000000 {
@@ -78,14 +70,14 @@
 				#size-cells = <0>;
 				port@0 {
 					reg = <0>;
-					typec0_con_hs: endpoint {
-						remote-endpoint = <&typec0_usb_hs>;
+					typec0_connector_hs: endpoint {
+						remote-endpoint = <&dwc3_0_hs>;
 					};
 				};
 				port@1 {
 					reg = <1>;
-					typec0_con_ss: endpoint {
-						remote-endpoint = <&typec0_usb_ss>;
+					typec0_connector_ss: endpoint {
+						remote-endpoint = <&atcphy0_typec_lanes>;
 					};
 				};
 			};
@@ -109,14 +101,14 @@
 				#size-cells = <0>;
 				port@0 {
 					reg = <0>;
-					typec1_con_hs: endpoint {
-						remote-endpoint = <&typec1_usb_hs>;
+					typec1_connector_hs: endpoint {
+						remote-endpoint = <&dwc3_1_hs>;
 					};
 				};
 				port@1 {
 					reg = <1>;
-					typec1_con_ss: endpoint {
-						remote-endpoint = <&typec1_usb_ss>;
+					typec1_connector_ss: endpoint {
+						remote-endpoint = <&atcphy1_typec_lanes>;
 					};
 				};
 			};
@@ -126,34 +118,86 @@
 
 /* USB controllers */
 &dwc3_0 {
-	port {
-		typec0_usb_hs: endpoint {
-			remote-endpoint = <&typec0_con_hs>;
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@0 {
+			reg = <0>;
+			dwc3_0_hs: endpoint {
+				remote-endpoint = <&typec0_connector_hs>;
+			};
+		};
+
+		port@1 {
+			reg = <1>;
+			dwc3_0_ss: endpoint {
+				remote-endpoint = <&atcphy0_usb3>;
+			};
 		};
 	};
 };
 
 &dwc3_1 {
-	port {
-		typec1_usb_hs: endpoint {
-			remote-endpoint = <&typec1_con_hs>;
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@0 {
+			reg = <0>;
+			dwc3_1_hs: endpoint {
+				remote-endpoint = <&typec1_connector_hs>;
+			};
+		};
+
+		port@1 {
+			reg = <1>;
+			dwc3_1_ss: endpoint {
+				remote-endpoint = <&atcphy1_usb3>;
+			};
 		};
 	};
 };
 
 /* Type-C PHYs */
 &atcphy0 {
-	port {
-		typec0_usb_ss: endpoint {
-			remote-endpoint = <&typec0_con_ss>;
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@0 {
+			reg = <0>;
+			atcphy0_typec_lanes: endpoint {
+				remote-endpoint = <&typec0_connector_ss>;
+			};
+		};
+
+		port@1 {
+			reg = <1>;
+			atcphy0_usb3: endpoint {
+				remote-endpoint = <&dwc3_0_ss>;
+			};
 		};
 	};
 };
 
 &atcphy1 {
-	port {
-		typec1_usb_ss: endpoint {
-			remote-endpoint = <&typec1_con_ss>;
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@0 {
+			reg = <0>;
+			atcphy1_typec_lanes: endpoint {
+				remote-endpoint = <&typec1_connector_ss>;
+			};
+		};
+
+		port@1 {
+			reg = <1>;
+			atcphy1_usb3: endpoint {
+				remote-endpoint = <&dwc3_1_ss>;
+			};
 		};
 	};
 };
@@ -173,5 +217,7 @@
 &nco_clkref {
 	clock-frequency = <900000000>;
 };
+
+#include "hwmon-common.dtsi"
 
 #include "spi1-nvram.dtsi"

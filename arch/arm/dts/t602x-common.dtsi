@@ -2,10 +2,12 @@
 /*
  * Nodes common to all T602x family SoCs (M2 Pro/Max/Ultra)
  *
+ * Other names: H14J, "Rhodes Chop", "Rhodes", "Rhodes 2C"
+ *
  * Copyright The Asahi Linux Contributors
  */
 
- / {
+/ {
 	#address-cells = <2>;
 	#size-cells = <2>;
 
@@ -32,6 +34,7 @@
 					cpu = <&cpu_e03>;
 				};
 			};
+
 			cluster1 {
 				core0 {
 					cpu = <&cpu_p00>;
@@ -70,7 +73,7 @@
 			enable-method = "spin-table";
 			cpu-release-addr = <0 0>; /* to be filled by loader */
 			next-level-cache = <&l2_cache_0>;
-			i-cache-size  = <0x20000>;
+			i-cache-size = <0x20000>;
 			d-cache-size = <0x10000>;
 			operating-points-v2 = <&blizzard_opp>;
 			capacity-dmips-mhz = <756>;
@@ -84,7 +87,7 @@
 			enable-method = "spin-table";
 			cpu-release-addr = <0 0>; /* to be filled by loader */
 			next-level-cache = <&l2_cache_0>;
-			i-cache-size  = <0x20000>;
+			i-cache-size = <0x20000>;
 			d-cache-size = <0x10000>;
 			operating-points-v2 = <&blizzard_opp>;
 			capacity-dmips-mhz = <756>;
@@ -98,7 +101,7 @@
 			enable-method = "spin-table";
 			cpu-release-addr = <0 0>; /* to be filled by loader */
 			next-level-cache = <&l2_cache_0>;
-			i-cache-size  = <0x20000>;
+			i-cache-size = <0x20000>;
 			d-cache-size = <0x10000>;
 			operating-points-v2 = <&blizzard_opp>;
 			capacity-dmips-mhz = <756>;
@@ -112,7 +115,7 @@
 			enable-method = "spin-table";
 			cpu-release-addr = <0 0>; /* to be filled by loader */
 			next-level-cache = <&l2_cache_0>;
-			i-cache-size  = <0x20000>;
+			i-cache-size = <0x20000>;
 			d-cache-size = <0x10000>;
 			operating-points-v2 = <&blizzard_opp>;
 			capacity-dmips-mhz = <756>;
@@ -598,19 +601,28 @@
 		#size-cells = <2>;
 		ranges;
 
+		gpu_globals: globals {
+			status = "disabled";
+		};
+
+		gpu_hw_cal_a: hw-cal-a {
+			status = "disabled";
+		};
+
+		gpu_hw_cal_b: hw-cal-b {
+			status = "disabled";
+		};
+
 		uat_handoff: uat-handoff {
 			reg = <0 0 0 0>;
-			no-map;
 		};
 
 		uat_pagetables: uat-pagetables {
 			reg = <0 0 0 0>;
-			no-map;
 		};
 
 		uat_ttbs: uat-ttbs {
 			reg = <0 0 0 0>;
-			no-map;
 		};
 	};
 };

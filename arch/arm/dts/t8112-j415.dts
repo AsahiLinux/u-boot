@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0+ OR MIT
 /*
- * Apple MacBook Air (15-inchl, M2, 2023)
+ * Apple MacBook Air (15-inch, M2, 2023)
  *
  * target-type: J415
  *
@@ -16,11 +16,12 @@
 / {
 	compatible = "apple,j415", "apple,t8112", "apple,arm-platform";
 	model = "Apple MacBook Air (15-inch, M2, 2023)";
+	chassis-type = "laptop";
 
 	aliases {
 		bluetooth0 = &bluetooth0;
-		wifi0 = &wifi0;
 		keyboard = &keyboard;
+		wifi0 = &wifi0;
 	};
 
 	led-controller {
@@ -44,6 +45,11 @@
 		adj-height-mm = <204>;
 		apple,max-brightness = <500>;
 	};
+};
+
+&framebuffer0 {
+	panel = <&panel>;
+	post-init-providers = <&panel>;
 };
 
 /*
@@ -187,8 +193,33 @@
 	};
 };
 
+&i2c4 {
+	status = "okay";
+};
+
 &fpwm1 {
 	status = "okay";
+};
+
+&aop_mbox {
+       status = "okay";
+};
+
+&aop_dart {
+       status = "okay";
+};
+
+&aop_admac {
+       status = "okay";
+};
+
+&aop {
+	status = "okay";
+};
+
+&aop_audio {
+	apple,chassis-name = "J415";
+	apple,machine-kind = "MacBook Air";
 };
 
 / {
@@ -266,3 +297,5 @@
 	apple,platform-id = <15>;
 	apple,temporal-filter = <1>;
 };
+
+#include "hwmon-laptop.dtsi"

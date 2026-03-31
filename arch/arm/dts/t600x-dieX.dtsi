@@ -81,9 +81,100 @@
 		phandle = <&DIE_NODE(dcpext0)>;
 		apple,dcp-index = <1>;
 		status = "disabled";
+		// required bus properties for 'piodma' subdevice
+		#address-cells = <2>;
+		#size-cells = <2>;
 
 		piodma {
 			iommus = <&DIE_NODE(dispext0_dart) 4>;
+		};
+
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			port@0 {
+				reg = <0>;
+				DIE_NODE(dcpext0_audio): endpoint {
+					remote-endpoint = <&DIE_NODE(dpaudio1_dcp)>;
+				};
+			};
+		};
+	};
+
+	DIE_NODE(dispext1_dart): iommu@28c304000 {
+		compatible = "apple,t6000-dart", "apple,t8110-dart";
+		reg = <0x2 0x8c304000 0x0 0x4000>;
+		#iommu-cells = <1>;
+		interrupt-parent = <&aic>;
+		interrupts = <AIC_IRQ DIE_NO 909 IRQ_TYPE_LEVEL_HIGH>;
+		power-domains = <&DIE_NODE(ps_dispext1_cpu0)>;
+		apple,dma-range = <0x0 0x0 0x0 0xfc000000>;
+		status = "disabled";
+	};
+
+	DIE_NODE(dcpext1_dart): iommu@28c30c000 {
+		compatible = "apple,t6000-dart", "apple,t8110-dart";
+		reg = <0x2 0x8c30c000 0x0 0x4000>;
+		#iommu-cells = <1>;
+		interrupt-parent = <&aic>;
+		interrupts = <AIC_IRQ DIE_NO 909 IRQ_TYPE_LEVEL_HIGH>;
+		power-domains = <&DIE_NODE(ps_dispext1_cpu0)>;
+		apple,dma-range = <0x1f0 0x0 0x0 0xfc000000>;
+		status = "disabled";
+	};
+
+	DIE_NODE(dcpext1_mbox): mbox@28cc08000 {
+		compatible = "apple,t6000-asc-mailbox", "apple,asc-mailbox-v4";
+		reg = <0x2 0x8cc08000 0x0 0x4000>;
+		interrupt-parent = <&aic>;
+		interrupts = <AIC_IRQ DIE_NO 930 IRQ_TYPE_LEVEL_HIGH>,
+			<AIC_IRQ DIE_NO 931 IRQ_TYPE_LEVEL_HIGH>,
+			<AIC_IRQ DIE_NO 932 IRQ_TYPE_LEVEL_HIGH>,
+			<AIC_IRQ DIE_NO 933 IRQ_TYPE_LEVEL_HIGH>;
+		interrupt-names = "send-empty", "send-not-empty",
+			"recv-empty", "recv-not-empty";
+		#mbox-cells = <0>;
+		power-domains = <&DIE_NODE(ps_dispext1_cpu0)>;
+		resets = <&DIE_NODE(ps_dispext1_cpu0)>;
+		status = "disabled";
+	};
+
+	DIE_NODE(dcpext1):  dcp@28cc00000 {
+		compatible = "apple,t6000-dcpext", "apple,dcpext";
+		mboxes = <&DIE_NODE(dcpext1_mbox)>;
+		mbox-names = "mbox";
+		iommus = <&DIE_NODE(dcpext1_dart) 0>;
+
+		reg-names = "coproc", "disp-0", "disp-1", "disp-2", "disp-3";
+		reg = <0x2 0x8cc00000 0x0 0x4000>,
+			<0x2 0x8b000000 0x0 0x3000000>,
+			<0x2 0x8c320000 0x0 0x4000>,
+			<0x2 0x8c344000 0x0 0x4000>,
+			<0x2 0x8c800000 0x0 0x800000>;
+		apple,bw-scratch = <&pmgr_dcp 0 4 0x998>;
+		power-domains = <&DIE_NODE(ps_dispext1_cpu0)>;
+		resets = <&DIE_NODE(ps_dispext1_cpu0)>;
+		clocks = <&DIE_NODE(clk_dispext1)>;
+		phandle = <&DIE_NODE(dcpext1)>;
+		apple,dcp-index = <2>;
+		status = "disabled";
+		// required bus properties for 'piodma' subdevice
+		#address-cells = <2>;
+		#size-cells = <2>;
+
+		piodma {
+			iommus = <&DIE_NODE(dispext1_dart) 4>;
+		};
+
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			port@0 {
+				reg = <0>;
+				DIE_NODE(dcpext1_audio): endpoint {
+					remote-endpoint = <&DIE_NODE(dpaudio2_dcp)>;
+				};
+			};
 		};
 	};
 
@@ -345,67 +436,22 @@
 				<AIC_IRQ DIE_NO 573 IRQ_TYPE_LEVEL_HIGH>;
 	};
 
-	DIE_NODE(dispext1_dart): iommu@315304000 {
-		compatible = "apple,t6000-dart", "apple,t8110-dart";
-		reg = <0x3 0x15304000 0x0 0x4000>;
+	DIE_NODE(sio_dart_0): iommu@39b004000 {
+		compatible = "apple,t6000-dart";
+		reg = <0x3 0x9b004000 0x0 0x4000>;
+		interrupt-parent = <&aic>;
+		interrupts = <AIC_IRQ DIE_NO 1130 IRQ_TYPE_LEVEL_HIGH>;
 		#iommu-cells = <1>;
-		interrupt-parent = <&aic>;
-		interrupts = <AIC_IRQ DIE_NO 950 IRQ_TYPE_LEVEL_HIGH>;
-		power-domains = <&DIE_NODE(ps_dispext1_cpu0)>;
-		apple,dma-range = <0x100 0x0 0x10 0x0>;
-		status = "disabled";
+		power-domains = <&DIE_NODE(ps_sio_cpu)>;
 	};
 
-	DIE_NODE(dcpext1_dart): iommu@31530c000 {
-		compatible = "apple,t6000-dart", "apple,t8110-dart";
-		reg = <0x3 0x1530c000 0x0 0x4000>;
+	DIE_NODE(sio_dart_1): iommu@39b008000 {
+		compatible = "apple,t6000-dart";
+		reg = <0x3 0x9b008000 0x0 0x8000>;
+		interrupt-parent = <&aic>;
+		interrupts = <AIC_IRQ DIE_NO 1130 IRQ_TYPE_LEVEL_HIGH>;
 		#iommu-cells = <1>;
-		interrupt-parent = <&aic>;
-		interrupts = <AIC_IRQ DIE_NO 950 IRQ_TYPE_LEVEL_HIGH>;
-		power-domains = <&DIE_NODE(ps_dispext1_cpu0)>;
-		apple,dma-range = <0x100 0x0 0x10 0x0>;
-		status = "disabled";
-	};
-
-	DIE_NODE(dcpext1_mbox): mbox@315c08000 {
-		compatible = "apple,t6000-asc-mailbox", "apple,asc-mailbox-v4";
-		reg = <0x3 0x15c08000 0x0 0x4000>;
-		interrupt-parent = <&aic>;
-		interrupts = <AIC_IRQ DIE_NO 1007 IRQ_TYPE_LEVEL_HIGH>,
-			<AIC_IRQ DIE_NO 1008 IRQ_TYPE_LEVEL_HIGH>,
-			<AIC_IRQ DIE_NO 1009 IRQ_TYPE_LEVEL_HIGH>,
-			<AIC_IRQ DIE_NO 1010 IRQ_TYPE_LEVEL_HIGH>;
-		interrupt-names = "send-empty", "send-not-empty",
-			"recv-empty", "recv-not-empty";
-		#mbox-cells = <0>;
-		power-domains = <&DIE_NODE(ps_dispext1_cpu0)>;
-		resets = <&DIE_NODE(ps_dispext1_cpu0)>;
-		status = "disabled";
-	};
-
-	DIE_NODE(dcpext1):  dcp@315c00000 {
-		compatible = "apple,t6000-dcpext", "apple,dcpext";
-		mboxes = <&DIE_NODE(dcpext1_mbox)>;
-		mbox-names = "mbox";
-		iommus = <&DIE_NODE(dcpext1_dart) 5>;
-
-		reg-names = "coproc", "disp-0", "disp-1", "disp-2", "disp-3";
-		reg = <0x3 0x15c00000 0x0 0x4000>,
-			<0x3 0x14000000 0x0 0x4000000>,
-			<0x3 0x15320000 0x0 0x4000>,
-			<0x3 0x15344000 0x0 0x4000>,
-			<0x3 0x15800000 0x0 0x800000>;
-		apple,bw-scratch = <&pmgr_dcp 0 4 0x998>;
-		power-domains = <&DIE_NODE(ps_dispext1_cpu0)>;
-		resets = <&DIE_NODE(ps_dispext1_cpu0)>;
-		clocks = <&DIE_NODE(clk_dispext1)>;
-		phandle = <&DIE_NODE(dcpext1)>;
-		apple,dcp-index = <2>;
-		status = "disabled";
-
-		piodma {
-			iommus = <&DIE_NODE(dispext1_dart) 4>;
-		};
+		power-domains = <&DIE_NODE(ps_sio_cpu)>;
 	};
 
 	DIE_NODE(pinctrl_ap): pinctrl@39b028000 {
@@ -433,6 +479,137 @@
 		#interrupt-cells = <2>;
 	};
 
+	DIE_NODE(sio_mbox): mbox@39bc08000 {
+		compatible = "apple,t6000-asc-mailbox", "apple,asc-mailbox-v4";
+		reg = <0x3 0x9bc08000 0x0 0x4000>;
+		interrupt-parent = <&aic>;
+		interrupts = <AIC_IRQ DIE_NO 1147 IRQ_TYPE_LEVEL_HIGH>,
+			<AIC_IRQ DIE_NO 1148 IRQ_TYPE_LEVEL_HIGH>,
+			<AIC_IRQ DIE_NO 1149 IRQ_TYPE_LEVEL_HIGH>,
+			<AIC_IRQ DIE_NO 1150 IRQ_TYPE_LEVEL_HIGH>;
+		interrupt-names = "send-empty", "send-not-empty",
+			"recv-empty", "recv-not-empty";
+		#mbox-cells = <0>;
+		power-domains = <&DIE_NODE(ps_sio_cpu)>;
+	};
+
+	DIE_NODE(sio): sio@39bc00000 {
+		compatible = "apple,t6000-sio", "apple,sio";
+		reg = <0x3 0x9bc00000 0x0 0x8000>;
+		dma-channels = <128>;
+		#dma-cells = <1>;
+		mboxes = <&DIE_NODE(sio_mbox)>;
+		iommus = <&DIE_NODE(sio_dart_0) 0>, <&DIE_NODE(sio_dart_1) 0>;
+		power-domains = <&DIE_NODE(ps_sio_cpu)>;
+		resets = <&DIE_NODE(ps_sio)>; /* TODO: verify reset does something */
+		status = "disabled";
+	};
+
+	DIE_NODE(dpaudio1): audio-controller@39b504000 {
+		compatible = "apple,t6000-dpaudio", "apple,dpaudio";
+		reg = <0x3 0x9b540000 0x0 0x4000>;
+		dmas = <&DIE_NODE(sio) 0x66>;
+		dma-names = "tx";
+		power-domains = <&DIE_NODE(ps_dpa1)>;
+		reset-domains = <&DIE_NODE(ps_dpa1)>;
+		status = "disabled";
+
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			port@0 {
+				reg = <0>;
+				DIE_NODE(dpaudio1_dcp): endpoint {
+					remote-endpoint = <&DIE_NODE(dcpext0_audio)>;
+				};
+			};
+		};
+	};
+
+	DIE_NODE(dpaudio2): audio-controller@39b508000 {
+		compatible = "apple,t6000-dpaudio", "apple,dpaudio";
+		reg = <0x3 0x9b580000 0x0 0x4000>;
+		dmas = <&DIE_NODE(sio) 0x68>;
+		dma-names = "tx";
+		power-domains = <&DIE_NODE(ps_dpa2)>;
+		reset-domains = <&DIE_NODE(ps_dpa2)>;
+		status = "disabled";
+
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			port@0 {
+				reg = <0>;
+				DIE_NODE(dpaudio2_dcp): endpoint {
+					remote-endpoint = <&DIE_NODE(dcpext1_audio)>;
+				};
+			};
+		};
+	};
+
+	/*
+	 * omit dpaudio3 / 4 as long as the linked dcpext nodes don't exist
+	 *
+	DIE_NODE(dpaudio3): audio-controller@39b50c000 {
+		compatible = "apple,t6000-dpaudio", "apple,dpaudio";
+		reg = <0x3 0x9b5c0000 0x0 0x4000>;
+		dmas = <&DIE_NODE(sio) 0x6a>;
+		dma-names = "tx";
+		power-domains = <&DIE_NODE(ps_dpa3)>;
+		reset-domains = <&DIE_NODE(ps_dpa3)>;
+		status = "disabled";
+
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			port@0 {
+				reg = <0>;
+				DIE_NODE(dpaudio3_dcp): endpoint {
+					remote-endpoint = <&DIE_NODE(dcpext2_audio)>;
+				};
+			};
+		};
+	};
+
+	DIE_NODE(dpaudio4): audio-controller@39b510000 {
+		compatible = "apple,t6000-dpaudio", "apple,dpaudio";
+		reg = <0x3 0x9b500000 0x0 0x4000>;
+		dmas = <&DIE_NODE(sio) 0x6c>;
+		dma-names = "tx";
+		power-domains = <&DIE_NODE(ps_dpa4)>;
+		reset-domains = <&DIE_NODE(ps_dpa4)>;
+		status = "disabled";
+
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			port@0 {
+				reg = <0>;
+				DIE_NODE(dpaudio4_dcp): endpoint {
+					remote-endpoint = <&DIE_NODE(dcpext3_audio)>;
+				};
+			};
+		};
+	};
+	*/
+
+	DIE_NODE(dwc3_0): usb@702280000 {
+		compatible = "apple,t6000-dwc3", "apple,t8103-dwc3";
+		reg = <0x7 0x02280000 0x0 0xcd00>, <0x7 0x0228cd00 0x0 0x3200>;
+		reg-names = "dwc3-core", "dwc3-apple";
+		interrupt-parent = <&aic>;
+		interrupts = <AIC_IRQ DIE_NO 1190 IRQ_TYPE_LEVEL_HIGH>;
+		dr_mode = "otg";
+		usb-role-switch;
+		role-switch-default-mode = "host";
+		iommus = <&DIE_NODE(dwc3_0_dart_0) 0>,
+			<&DIE_NODE(dwc3_0_dart_1) 1>;
+		power-domains = <&DIE_NODE(ps_atc0_usb)>;
+		resets = <&DIE_NODE(atcphy0)>;
+		phys = <&DIE_NODE(atcphy0) PHY_TYPE_USB2>, <&DIE_NODE(atcphy0) PHY_TYPE_USB3>;
+		phy-names = "usb2-phy", "usb3-phy";
+	};
+
 	DIE_NODE(dwc3_0_dart_0): iommu@702f00000 {
 		compatible = "apple,t6000-dart";
 		reg = <0x7 0x02f00000 0x0 0x4000>;
@@ -449,23 +626,6 @@
 		interrupts = <AIC_IRQ DIE_NO 1194 IRQ_TYPE_LEVEL_HIGH>;
 		power-domains = <&DIE_NODE(ps_atc0_usb)>;
 		#iommu-cells = <1>;
-	};
-
-	DIE_NODE(dwc3_0): usb@702280000 {
-		compatible = "apple,t6000-dwc3", "apple,dwc3", "snps,dwc3";
-		reg = <0x7 0x02280000 0x0 0x100000>;
-		interrupt-parent = <&aic>;
-		interrupts = <AIC_IRQ DIE_NO 1190 IRQ_TYPE_LEVEL_HIGH>;
-		dr_mode = "otg";
-		usb-role-switch;
-		role-switch-default-mode = "host";
-		iommus = <&DIE_NODE(dwc3_0_dart_0) 0>,
-			<&DIE_NODE(dwc3_0_dart_1) 1>;
-		power-domains = <&DIE_NODE(ps_atc0_usb)>;
-		dma-coherent;
-		resets = <&DIE_NODE(atcphy0)>;
-		phys = <&DIE_NODE(atcphy0) PHY_TYPE_USB2>, <&DIE_NODE(atcphy0) PHY_TYPE_USB3>;
-		phy-names = "usb2-phy", "usb3-phy";
 	};
 
 	DIE_NODE(atcphy0): phy@703000000 {
@@ -502,7 +662,6 @@
 
 		orientation-switch;
 		mode-switch;
-		svid = <0xff01>, <0x8087>;
 		power-domains = <&DIE_NODE(ps_atc0_usb)>;
 	};
 
@@ -512,6 +671,23 @@
 		#mux-control-cells = <1>;
 		power-domains = <&DIE_NODE(ps_atc0_usb)>;
 		status = "disabled";
+	};
+
+	DIE_NODE(dwc3_1): usb@b02280000 {
+		compatible = "apple,t6000-dwc3", "apple,t8103-dwc3";
+		reg = <0xb 0x02280000 0x0 0xcd00>, <0xb 0x0228cd00 0x0 0x3200>;
+		reg-names = "dwc3-core", "dwc3-apple";
+		interrupt-parent = <&aic>;
+		interrupts = <AIC_IRQ DIE_NO 1207 IRQ_TYPE_LEVEL_HIGH>;
+		dr_mode = "otg";
+		usb-role-switch;
+		role-switch-default-mode = "host";
+		iommus = <&DIE_NODE(dwc3_1_dart_0) 0>,
+			<&DIE_NODE(dwc3_1_dart_1) 1>;
+		power-domains = <&DIE_NODE(ps_atc1_usb)>;
+		resets = <&DIE_NODE(atcphy1)>;
+		phys = <&DIE_NODE(atcphy1) PHY_TYPE_USB2>, <&DIE_NODE(atcphy1) PHY_TYPE_USB3>;
+		phy-names = "usb2-phy", "usb3-phy";
 	};
 
 	DIE_NODE(dwc3_1_dart_0): iommu@b02f00000 {
@@ -530,23 +706,6 @@
 		interrupts = <AIC_IRQ DIE_NO 1211 IRQ_TYPE_LEVEL_HIGH>;
 		power-domains = <&DIE_NODE(ps_atc1_usb)>;
 		#iommu-cells = <1>;
-	};
-
-	DIE_NODE(dwc3_1): usb@b02280000 {
-		compatible = "apple,t6000-dwc3", "apple,dwc3", "snps,dwc3";
-		reg = <0xb 0x02280000 0x0 0x100000>;
-		interrupt-parent = <&aic>;
-		interrupts = <AIC_IRQ DIE_NO 1207 IRQ_TYPE_LEVEL_HIGH>;
-		dr_mode = "otg";
-		usb-role-switch;
-		role-switch-default-mode = "host";
-		iommus = <&DIE_NODE(dwc3_1_dart_0) 0>,
-			<&DIE_NODE(dwc3_1_dart_1) 1>;
-		power-domains = <&DIE_NODE(ps_atc1_usb)>;
-		dma-coherent;
-		resets = <&DIE_NODE(atcphy1)>;
-		phys = <&DIE_NODE(atcphy1) PHY_TYPE_USB2>, <&DIE_NODE(atcphy1) PHY_TYPE_USB3>;
-		phy-names = "usb2-phy", "usb3-phy";
 	};
 
 	DIE_NODE(atcphy1): phy@b03000000 {
@@ -583,7 +742,6 @@
 
 		orientation-switch;
 		mode-switch;
-		svid = <0xff01>, <0x8087>;
 		power-domains = <&DIE_NODE(ps_atc1_usb)>;
 	};
 
@@ -593,6 +751,23 @@
 		#mux-control-cells = <1>;
 		power-domains = <&DIE_NODE(ps_atc1_usb)>;
 		status = "disabled";
+	};
+
+	DIE_NODE(dwc3_2): usb@f02280000 {
+		compatible = "apple,t6000-dwc3", "apple,t8103-dwc3";
+		reg = <0xf 0x02280000 0x0 0xcd00>, <0xf 0x0228cd00 0x0 0x3200>;
+		reg-names = "dwc3-core", "dwc3-apple";
+		interrupt-parent = <&aic>;
+		interrupts = <AIC_IRQ DIE_NO 1224 IRQ_TYPE_LEVEL_HIGH>;
+		dr_mode = "otg";
+		usb-role-switch;
+		role-switch-default-mode = "host";
+		iommus = <&DIE_NODE(dwc3_2_dart_0) 0>,
+			<&DIE_NODE(dwc3_2_dart_1) 1>;
+		power-domains = <&DIE_NODE(ps_atc2_usb)>;
+		resets = <&DIE_NODE(atcphy2)>;
+		phys = <&DIE_NODE(atcphy2) PHY_TYPE_USB2>, <&DIE_NODE(atcphy2) PHY_TYPE_USB3>;
+		phy-names = "usb2-phy", "usb3-phy";
 	};
 
 	DIE_NODE(dwc3_2_dart_0): iommu@f02f00000 {
@@ -611,23 +786,6 @@
 		interrupts = <AIC_IRQ DIE_NO 1228 IRQ_TYPE_LEVEL_HIGH>;
 		power-domains = <&DIE_NODE(ps_atc2_usb)>;
 		#iommu-cells = <1>;
-	};
-
-	DIE_NODE(dwc3_2): usb@f02280000 {
-		compatible = "apple,t6000-dwc3", "apple,dwc3", "snps,dwc3";
-		reg = <0xf 0x02280000 0x0 0x100000>;
-		interrupt-parent = <&aic>;
-		interrupts = <AIC_IRQ DIE_NO 1224 IRQ_TYPE_LEVEL_HIGH>;
-		dr_mode = "otg";
-		usb-role-switch;
-		role-switch-default-mode = "host";
-		iommus = <&DIE_NODE(dwc3_2_dart_0) 0>,
-			<&DIE_NODE(dwc3_2_dart_1) 1>;
-		power-domains = <&DIE_NODE(ps_atc2_usb)>;
-		dma-coherent;
-		resets = <&DIE_NODE(atcphy2)>;
-		phys = <&DIE_NODE(atcphy2) PHY_TYPE_USB2>, <&DIE_NODE(atcphy2) PHY_TYPE_USB3>;
-		phy-names = "usb2-phy", "usb3-phy";
 	};
 
 	DIE_NODE(atcphy2): phy@f03000000 {
@@ -664,7 +822,6 @@
 
 		orientation-switch;
 		mode-switch;
-		svid = <0xff01>, <0x8087>;
 		power-domains = <&DIE_NODE(ps_atc2_usb)>;
 	};
 
@@ -674,6 +831,23 @@
 		#mux-control-cells = <1>;
 		power-domains = <&DIE_NODE(ps_atc2_usb)>;
 		status = "disabled";
+	};
+
+	DIE_NODE(dwc3_3): usb@1302280000 {
+		compatible = "apple,t6000-dwc3", "apple,t8103-dwc3";
+		reg = <0x13 0x02280000 0x0 0xcd00>, <0x13 0x0228cd00 0x0 0x3200>;
+		reg-names = "dwc3-core", "dwc3-apple";
+		interrupt-parent = <&aic>;
+		interrupts = <AIC_IRQ DIE_NO 1241 IRQ_TYPE_LEVEL_HIGH>;
+		dr_mode = "otg";
+		usb-role-switch;
+		role-switch-default-mode = "host";
+		iommus = <&DIE_NODE(dwc3_3_dart_0) 0>,
+			<&DIE_NODE(dwc3_3_dart_1) 1>;
+		power-domains = <&DIE_NODE(ps_atc3_usb)>;
+		resets = <&DIE_NODE(atcphy3)>;
+		phys = <&DIE_NODE(atcphy3) PHY_TYPE_USB2>, <&DIE_NODE(atcphy3) PHY_TYPE_USB3>;
+		phy-names = "usb2-phy", "usb3-phy";
 	};
 
 	DIE_NODE(dwc3_3_dart_0): iommu@1302f00000 {
@@ -692,23 +866,6 @@
 		interrupts = <AIC_IRQ DIE_NO 1245 IRQ_TYPE_LEVEL_HIGH>;
 		power-domains = <&DIE_NODE(ps_atc3_usb)>;
 		#iommu-cells = <1>;
-	};
-
-	DIE_NODE(dwc3_3): usb@1302280000 {
-		compatible = "apple,t6000-dwc3", "apple,dwc3", "snps,dwc3";
-		reg = <0x13 0x02280000 0x0 0x100000>;
-		interrupt-parent = <&aic>;
-		interrupts = <AIC_IRQ DIE_NO 1241 IRQ_TYPE_LEVEL_HIGH>;
-		dr_mode = "otg";
-		usb-role-switch;
-		role-switch-default-mode = "host";
-		iommus = <&DIE_NODE(dwc3_3_dart_0) 0>,
-			<&DIE_NODE(dwc3_3_dart_1) 1>;
-		power-domains = <&DIE_NODE(ps_atc3_usb)>;
-		dma-coherent;
-		resets = <&DIE_NODE(atcphy3)>;
-		phys = <&DIE_NODE(atcphy3) PHY_TYPE_USB2>, <&DIE_NODE(atcphy3) PHY_TYPE_USB3>;
-		phy-names = "usb2-phy", "usb3-phy";
 	};
 
 	DIE_NODE(atcphy3): phy@1303000000 {
@@ -745,7 +902,6 @@
 
 		orientation-switch;
 		mode-switch;
-		svid = <0xff01>, <0x8087>;
 		power-domains = <&DIE_NODE(ps_atc3_usb)>;
 	};
 
