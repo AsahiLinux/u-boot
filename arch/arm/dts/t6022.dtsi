@@ -273,9 +273,9 @@
 		compatible = "simple-bus";
 		#address-cells = <2>;
 		#size-cells = <2>;
-		ranges = <0x2 0x0 0x2 0x0 0x4 0x0>,
-			 <0x5 0x80000000 0x5 0x80000000 0x1 0x80000000>,
-			 <0x7 0x0 0x7 0x0 0xf 0x80000000>,
+		ranges = <0x02 0x00000000 0x02 0x00000000 0x4 0x00000000>,
+			 <0x05 0x80000000 0x05 0x80000000 0x1 0x80000000>,
+			 <0x07 0x00000000 0x07 0x00000000 0xf 0x80000000>,
 			 <0x16 0x80000000 0x16 0x80000000 0x5 0x80000000>;
 		nonposted-mmio;
 		/* Required to get >32-bit DMA via DARTs */
@@ -288,8 +288,8 @@
 		compatible = "simple-bus";
 		#address-cells = <2>;
 		#size-cells = <2>;
-		ranges = <0x2 0x0 0x22 0x0 0x4 0x0>,
-			 <0x7 0x0 0x27 0x0 0xf 0x80000000>,
+		ranges = <0x02 0x00000000 0x22 0x00000000 0x4 0x00000000>,
+			 <0x07 0x00000000 0x27 0x00000000 0xf 0x80000000>,
 			 <0x16 0x80000000 0x36 0x80000000 0x5 0x80000000>;
 		nonposted-mmio;
 		/* Required to get >32-bit DMA via DARTs */
@@ -322,6 +322,8 @@
 };
 
 #include "t602x-pmgr.dtsi"
+
+/delete-node/ &ps_pmp_die1;
 
 #undef DIE
 #undef DIE_NO
@@ -358,13 +360,18 @@
 };
 
 &gpu {
-	compatible = "apple,agx-t6022", "apple,agx-g14x";
+	compatible = "apple,agx-t6022", "apple,agx-g14x", "apple,agx-g14d", "apple,agx-g14s";
 
 	apple,avg-power-filter-tc-ms = <302>;
 	apple,avg-power-ki-only = <1.0125>;
 	apple,avg-power-kp = <0.15>;
 	apple,fast-die0-integral-gain = <9.6>;
 	apple,fast-die0-proportional-gain = <24.0>;
+	apple,idleoff-standby-timer = <3000>;
+	apple,perf-base-pstate = <5>;
+	apple,perf-boost-ce-step = <100>;
+	apple,perf-boost-min-util = <75>;
+	apple,perf-tgt-utilization = <70>;
 	apple,ppm-ki = <11.0>;
 	apple,ppm-kp = <0.15>;
 };

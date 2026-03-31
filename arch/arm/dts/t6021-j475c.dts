@@ -27,6 +27,16 @@
 	brcm,board-type = "apple,canary";
 };
 
+/* enable PCIe port01 with SDHCI */
+&port01 {
+	pwren-gpios = <&smc_gpio 22 GPIO_ACTIVE_HIGH>;
+	status = "okay";
+};
+
+&pcie0_dart_1 {
+	status = "okay";
+};
+
 &pinctrl_ap {
 	usb_hub_oe-hog {
 		gpio-hog;
@@ -82,8 +92,14 @@
 &dcpext0_mbox {
 	status = "okay";
 };
+&dpaudio1 {
+	status = "okay";
+};
 &dcpext0 {
 #else
+&dpaudio0 {
+	status = "okay";
+};
 &dcp {
 #endif
 	status = "okay";
@@ -99,3 +115,13 @@
 	phy-names = "dp-phy";
 	apple,dptx-phy = <4>;
 };
+
+&gpu {
+	apple,idleoff-standby-timer = <3000>;
+	apple,perf-base-pstate = <5>;
+	apple,perf-boost-ce-step = <100>;
+	apple,perf-boost-min-util = <75>;
+	apple,perf-tgt-utilization = <70>;
+};
+
+#include "hwmon-fan-dual.dtsi"

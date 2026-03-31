@@ -321,5 +321,5 @@
 };
 
 &gpu {
-	compatible = "apple,agx-t6002", "apple,agx-g13x";
+	compatible = "apple,agx-t6002", "apple,agx-g13d", "apple,agx-g13s";
 };

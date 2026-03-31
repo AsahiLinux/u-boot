@@ -12,6 +12,8 @@
 #include <dt-bindings/leds/common.h>
 
 / {
+	chassis-type = "laptop";
+
 	aliases {
 		atcphy0 = &atcphy0;
 		atcphy1 = &atcphy1;
@@ -22,8 +24,8 @@
 		dcpext0 = &dcpext0;
 		disp0 = &display;
 		disp0_piodma = &disp0_piodma;
-		nvram = &nvram;
 		serial0 = &serial0;
+		sio = &sio;
 		wifi0 = &wifi0;
 	};
 
@@ -39,15 +41,10 @@
 			reg = <0 0 0 0>; /* To be filled by loader */
 			/* Format properties will be added by loader */
 			status = "disabled";
+			panel = <&panel>;
+			post-init-providers = <&panel>;
 			power-domains = <&ps_disp0_cpu0>;
 		};
-	};
-
-	reserved-memory {
-		#address-cells = <2>;
-		#size-cells = <2>;
-		ranges;
-		/* To be filled by loader */
 	};
 
 	memory@10000000000 {
@@ -104,21 +101,42 @@
 	hdmi-pwren-gpios = <&smc_gpio 23 GPIO_ACTIVE_HIGH>;
 	dp2hdmi-pwren-gpios = <&smc_gpio 6 GPIO_ACTIVE_HIGH>;
 
-	phy-names = "dp-phy";
 	phys = <&atcphy3 PHY_TYPE_DP>;
 	phy-names = "dp-phy";
 	mux-controls = <&atcphy3_xbar 0>;
 	mux-control-names = "dp-xbar";
 	mux-index = <0>;
 	apple,dptx-phy = <3>;
+
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@1 {
+			reg = <1>;
+
+			decpext0_dpout: endpoint {
+				remote-endpoint = <&atcphy3_dp>;
+			};
+		};
+	};
 };
 
-&atcphy3 {
-	apple,mode-fixed-dp;
+/* remove once m1n1 enables sio nodes after setup */
+&sio {
+        status = "okay";
+};
+
+&dpaudio1 {
+	status = "okay";
 };
 
 &atcphy3_xbar {
 	status = "okay";
+};
+
+&ps_atc3_common {
+	apple,always-on; /* Needs to stay on for HDMI resume */
 };
 
 /* USB Type C */
@@ -141,14 +159,14 @@
 				#size-cells = <0>;
 				port@0 {
 					reg = <0>;
-					typec0_con_hs: endpoint {
-						remote-endpoint = <&typec0_usb_hs>;
+					typec0_connector_hs: endpoint {
+						remote-endpoint = <&dwc3_0_hs>;
 					};
 				};
 				port@1 {
 					reg = <1>;
-					typec0_con_ss: endpoint {
-						remote-endpoint = <&typec0_usb_ss>;
+					typec0_connector_ss: endpoint {
+						remote-endpoint = <&atcphy0_typec_lanes>;
 					};
 				};
 			};
@@ -173,14 +191,14 @@
 				#size-cells = <0>;
 				port@0 {
 					reg = <0>;
-					typec1_con_hs: endpoint {
-						remote-endpoint = <&typec1_usb_hs>;
+					typec1_connector_hs: endpoint {
+						remote-endpoint = <&dwc3_1_hs>;
 					};
 				};
 				port@1 {
 					reg = <1>;
-					typec1_con_ss: endpoint {
-						remote-endpoint = <&typec1_usb_ss>;
+					typec1_connector_ss: endpoint {
+						remote-endpoint = <&atcphy1_typec_lanes>;
 					};
 				};
 			};
@@ -205,14 +223,14 @@
 				#size-cells = <0>;
 				port@0 {
 					reg = <0>;
-					typec2_con_hs: endpoint {
-						remote-endpoint = <&typec2_usb_hs>;
+					typec2_connector_hs: endpoint {
+						remote-endpoint = <&dwc3_2_hs>;
 					};
 				};
 				port@1 {
 					reg = <1>;
-					typec2_con_ss: endpoint {
-						remote-endpoint = <&typec2_usb_ss>;
+					typec2_connector_ss: endpoint {
+						remote-endpoint = <&atcphy2_typec_lanes>;
 					};
 				};
 			};
@@ -369,7 +387,7 @@
 		apple,antenna-sku = "XX";
 	};
 
-	bluetooth0: network@0,1 {
+	bluetooth0: bluetooth@0,1 {
 		compatible = "pci14e4,5f71";
 		reg = <0x10100 0x0 0x0 0x0 0x0>;
 		/* To be filled by the loader */
@@ -400,52 +418,74 @@
 
 /* USB controllers */
 &dwc3_0 {
-	port {
-		typec0_usb_hs: endpoint {
-			remote-endpoint = <&typec0_con_hs>;
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@0 {
+			reg = <0>;
+			dwc3_0_hs: endpoint {
+				remote-endpoint = <&typec0_connector_hs>;
+			};
+		};
+
+		port@1 {
+			reg = <1>;
+			dwc3_0_ss: endpoint {
+				remote-endpoint = <&atcphy0_usb3>;
+			};
 		};
 	};
 };
 
 &dwc3_1 {
-	port {
-		typec1_usb_hs: endpoint {
-			remote-endpoint = <&typec1_con_hs>;
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@0 {
+			reg = <0>;
+			dwc3_1_hs: endpoint {
+				remote-endpoint = <&typec1_connector_hs>;
+			};
+		};
+
+		port@1 {
+			reg = <1>;
+			dwc3_1_ss: endpoint {
+				remote-endpoint = <&atcphy1_usb3>;
+			};
 		};
 	};
 };
 
 &dwc3_2 {
-	port {
-		typec2_usb_hs: endpoint {
-			remote-endpoint = <&typec2_con_hs>;
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@0 {
+			reg = <0>;
+			dwc3_2_hs: endpoint {
+				remote-endpoint = <&typec2_connector_hs>;
+			};
+		};
+
+		port@1 {
+			reg = <1>;
+			dwc3_2_ss: endpoint {
+				remote-endpoint = <&atcphy2_usb3>;
+			};
 		};
 	};
 };
 
-/* Type-C PHYs */
-&atcphy0 {
-	port {
-		typec0_usb_ss: endpoint {
-			remote-endpoint = <&typec0_con_ss>;
-		};
-	};
-};
-
-&atcphy1 {
-	port {
-		typec1_usb_ss: endpoint {
-			remote-endpoint = <&typec1_con_ss>;
-		};
-	};
-};
-
-&atcphy2 {
-	port {
-		typec2_usb_ss: endpoint {
-			remote-endpoint = <&typec2_con_ss>;
-		};
-	};
+/*
+ * ps_atc3_usb_aon power-domain is always-on to keep dwc3 working over suspend.
+ * atc3 is used exclusively for the DP-to-HDMI so do not keep this always on.
+ */
+&ps_atc3_usb_aon {
+	/delete-property/ apple,always-on;
 };
 
 /* ATC3 is used for DisplayPort -> HDMI only */
@@ -460,13 +500,104 @@
 &dwc3_3 {
 	status = "disabled";
 };
+
 /* Delete unused dwc3_3 to prevent dt_disable_missing_devs() from disabling
  * atcphy3 via phandle references from a disablecd device.
  */
 /delete-node/ &dwc3_3;
 
-&ps_atc3_usb_aon {
-	/delete-property/ apple,always-on;
+/* Type-C PHYs */
+&atcphy0 {
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@0 {
+			reg = <0>;
+			atcphy0_typec_lanes: endpoint {
+				remote-endpoint = <&typec0_connector_ss>;
+			};
+		};
+
+		port@1 {
+			reg = <1>;
+			atcphy0_usb3: endpoint {
+				remote-endpoint = <&dwc3_0_ss>;
+			};
+		};
+	};
+};
+
+&atcphy1 {
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@0 {
+			reg = <0>;
+			atcphy1_typec_lanes: endpoint {
+				remote-endpoint = <&typec1_connector_ss>;
+			};
+		};
+
+		port@1 {
+			reg = <1>;
+			atcphy1_usb3: endpoint {
+				remote-endpoint = <&dwc3_1_ss>;
+			};
+		};
+	};
+};
+
+&atcphy2 {
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@0 {
+			reg = <0>;
+			atcphy2_typec_lanes: endpoint {
+				remote-endpoint = <&typec2_connector_ss>;
+			};
+		};
+
+		port@1 {
+			reg = <1>;
+			atcphy2_usb3: endpoint {
+				remote-endpoint = <&dwc3_2_ss>;
+			};
+		};
+	};
+};
+
+&atcphy3 {
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@2 {
+			reg = <2>;
+			atcphy3_dp: endpoint {
+				remote-endpoint = <&decpext0_dpout>;
+			};
+		};
+	};
+};
+
+&aop_mbox {
+       status = "okay";
+};
+
+&aop_dart {
+       status = "okay";
+};
+
+&aop_admac {
+       status = "okay";
+};
+
+&aop {
+       status = "okay";
 };
 
 / {
@@ -509,3 +640,7 @@
 &isp {
 	apple,platform-id = <3>;
 };
+
+#include "hwmon-common.dtsi"
+#include "hwmon-fan-dual.dtsi"
+#include "hwmon-laptop.dtsi"

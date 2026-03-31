@@ -17,6 +17,18 @@
 	model = "Apple Mac Studio (M1 Max, 2022)";
 };
 
+&wifi0 {
+	brcm,board-type = "apple,okinawa";
+};
+
+&bluetooth0 {
+	brcm,board-type = "apple,okinawa";
+};
+
+&dpaudio0 {
+	status = "okay";
+};
+
 &sound {
 	compatible = "apple,j375-macaudio", "apple,macaudio";
 	model = "Mac Studio J375";
@@ -37,3 +49,14 @@
 		line-name = "usb-hub-rst";
 	};
 };
+
+&gpu {
+	apple,avg-power-ki-only = <0.6375>;
+	apple,avg-power-kp = <0.58>;
+	apple,avg-power-target-filter-tc = <1>;
+	apple,perf-base-pstate = <3>;
+	apple,ppm-ki = <5.8>;
+	apple,ppm-kp = <0.355>;
+};
+
+#include "hwmon-fan-dual.dtsi"

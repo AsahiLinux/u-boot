@@ -15,6 +15,7 @@
 / {
 	compatible = "apple,j456", "apple,t8103", "apple,arm-platform";
 	model = "Apple iMac (24-inch, 4x USB-C, M1, 2021)";
+	chassis-type = "all-in-one";
 
 	aliases {
 		ethernet0 = &ethernet0;
@@ -28,6 +29,11 @@
 		height-mm = <294>;
 		apple,max-brightness = <525>;
 	};
+};
+
+&framebuffer0 {
+	panel = <&panel>;
+	post-init-providers = <&panel>;
 };
 
 &bluetooth0 {
@@ -110,6 +116,32 @@
 	};
 };
 
+&aop_mbox {
+       status = "okay";
+};
+
+&aop_dart {
+       status = "okay";
+};
+
+&aop_admac {
+       status = "okay";
+};
+
+&aop {
+	status = "okay";
+};
+
+&sep {
+	status = "okay";
+};
+
+&aop_audio {
+	apple,chassis-name = "J456";
+	apple,machine-kind = "iMac";
+	apple,no-beamforming;
+};
+
 / {
 	sound {
 		compatible = "apple,j456-macaudio", "apple,macaudio";
@@ -137,3 +169,5 @@
 &isp {
 	apple,platform-id = <2>;
 };
+
+#include "hwmon-fan-dual.dtsi"

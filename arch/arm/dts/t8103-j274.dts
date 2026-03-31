@@ -15,14 +15,25 @@
 / {
 	compatible = "apple,j274", "apple,t8103", "apple,arm-platform";
 	model = "Apple Mac mini (M1, 2020)";
+	chassis-type = "desktop";
 
 	aliases {
 		ethernet0 = &ethernet0;
+		sio = &sio;
 	};
 };
 
 &dcp {
 	apple,connector-type = "HDMI-A";
+};
+
+/* remove once m1n1 enables sio nodes after setup */
+&sio {
+        status = "okay";
+};
+
+&dpaudio0 {
+	status = "okay";
 };
 
 &bluetooth0 {
@@ -134,3 +145,5 @@
 &gpu {
 	apple,perf-base-pstate = <3>;
 };
+
+#include "hwmon-mini.dtsi"
