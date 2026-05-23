@@ -14,6 +14,8 @@
 #include <syscon.h>
 
 #define APPLE_PMGR_RESET	BIT(31)
+#define APPLE_PMGR_AUTO_ENABLE	BIT(28)
+#define APPLE_PMGR_PS_RESET	BIT(12)
 #define APPLE_PMGR_DEV_DISABLE	BIT(10)
 #define APPLE_PMGR_WAS_CLKGATED	BIT(9)
 #define APPLE_PMGR_WAS_PWRGATED BIT(8)
@@ -83,6 +85,14 @@ static int apple_pmgr_ps_set(struct power_domain *power_domain, u32 pstate)
 {
 	struct apple_pmgr_priv *priv = dev_get_priv(power_domain->dev);
 	uint reg;
+	int ret;
+
+	ret = regmap_read(priv->regmap, priv->offset, &reg);
+	if (ret < 0)
+		return ret;
+
+	if (FIELD_GET(APPLE_PMGR_AUTO_ENABLE, reg))
+		return 0;
 
 	regmap_update_bits(priv->regmap, priv->offset, APPLE_PMGR_PS_TARGET,
 			   FIELD_PREP(APPLE_PMGR_PS_TARGET, pstate));
