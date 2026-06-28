@@ -18,6 +18,19 @@ config APPLE_PMGR_POWER_DOMAIN
 	  This driver is needed to power on parts of the SoC that have
 	  not been powered on by previous boot stages.
 
+config APPLE_PMP_REPORT_POWER_DOMAIN
+	bool "Enable the Apple PMP reporting power domain driver"
+	depends on POWER_DOMAIN
+	default y if ARCH_APPLE
+	help
+	  Enable support for reporting power states to the Apple Power
+	  Management Processor (PMP).
+
+	  This is a dummy driver since the PMP is entirely optional and
+	  enabling is not necessary during boot. However, it allows for
+	  devices bound to a PMGR domain through a PMP reporting domain to be
+	  powered on.
+
 config AGILEX5_PMGR_POWER_DOMAIN
 	bool "Enable the Agilex5 PMGR power domain driver"
 	depends on SPL_POWER_DOMAIN && TARGET_SOCFPGA_SOC64

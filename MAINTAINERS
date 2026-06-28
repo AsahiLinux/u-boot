@@ -142,6 +142,7 @@ F:	drivers/pci/pcie_apple.c
 F:	drivers/phy/phy-apple-atc.c
 F:	drivers/pinctrl/pinctrl-apple.c
 F:	drivers/power/domain/apple-pmgr.c
+F:	drivers/power/domain/apple-pmp-report.c
 F:	drivers/spi/apple_spi.c
 F:	drivers/usb/host/xhci-pci-asmedia.c
 F:	drivers/watchdog/apple_wdt.c
