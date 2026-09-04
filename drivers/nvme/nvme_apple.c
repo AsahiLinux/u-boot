@@ -12,6 +12,7 @@
 #include <asm/io.h>
 #include <asm/arch/rtkit.h>
 #include <asm/arch/sart.h>
+#include <linux/bug.h>
 #include <linux/iopoll.h>
 #include <linux/sizes.h>
 
@@ -118,6 +119,11 @@ static void apple_nvme_submit_cmd(struct nvme_queue *nvmeq,
 		container_of(nvmeq->dev, struct apple_nvme_priv, ndev);
 	struct ans_nvmmu_tcb *tcb;
 	u16 tail = nvmeq->sq_tail;
+
+	if (nvmeq->qid == NVME_ADMIN_Q) {
+		BUG_ON(!IS_ALIGNED(cmd->common.prp1, nvmeq->dev->page_size));
+		BUG_ON(!IS_ALIGNED(cmd->common.prp2, nvmeq->dev->page_size));
+	}
 
 	tcb = ((void *)priv->tcbs[nvmeq->qid]) + tail * ANS_NVMMU_TCB_PITCH;
 	memset(tcb, 0, sizeof(*tcb));
