@@ -30,6 +30,8 @@
 #define XHCI_TIMEOUT		1000
 /* Timeout for interrupt messages */
 #define XHCI_INT_TIMEOUT	1000
+/* Timeout for non-blocking interrupt messages, e.g. keyboard polls */
+#define XHCI_INT_NONBLOCK_TIMEOUT	20
 /* Timeout for system commands */
 #define XHCI_SYS_TIMEOUT	200
 /* Max number of USB devices for any host controller - limit in section 6.1 */

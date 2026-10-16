@@ -1157,8 +1157,13 @@ static int _xhci_submit_int_msg(struct usb_device *udev, unsigned long pipe,
 	 * interrupt endpoint is to be serviced, the xHC will consume
 	 * (at most) one TD. A TD (comprised of sg list entries) can
 	 * take several service intervals to transmit.
+	 *
+	 * A non-blocking poll must not wait out the full timeout: some
+	 * keyboards send nothing until a key changes.
 	 */
-	return xhci_bulk_tx(udev, pipe, length, buffer, XHCI_INT_TIMEOUT);
+	return xhci_bulk_tx(udev, pipe, length, buffer,
+			    nonblock ? XHCI_INT_NONBLOCK_TIMEOUT :
+				       XHCI_INT_TIMEOUT);
 }
 
 /**

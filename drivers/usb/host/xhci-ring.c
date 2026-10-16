@@ -552,46 +552,65 @@ static void reset_ep(struct usb_device *udev, int ep_index)
 	xhci_acknowledge_event(ctrl);
 }
 
+/* How abort_td() left the transfer it was asked to cancel. */
+enum abort_result {
+	/* Stopped before it completed: the controller has let go of the buffer. */
+	ABORT_STOPPED,
+	/* It completed before the stop took effect: *late holds its event. */
+	ABORT_COMPLETED,
+	/*
+	 * A command was not acknowledged: the controller may still own the
+	 * buffer, so it must not be unmapped or reused for DMA.
+	 */
+	ABORT_UNKNOWN,
+};
+
 /*
  * Stops transfer processing for an endpoint and throws away all unprocessed
  * TRBs by setting the xHC's dequeue pointer to our enqueue pointer. The next
  * xhci_bulk_tx/xhci_ctrl_tx on this enpoint will add new transfers there and
  * ring the doorbell, causing this endpoint to start working again.
+ *
+ * A transfer can complete between the caller's timeout and the Stop Endpoint
+ * command. Its event then arrives before the command completion; it is copied
+ * to *late and reported as ABORT_COMPLETED instead of being dropped, so a
+ * report that did arrive is not turned into a timeout.
  * (Careful: This will BUG() when there was no transfer in progress. Shouldn't
  * happen in practice for current uses and is too complicated to fix right now.)
  */
-static void abort_td(struct usb_device *udev, int ep_index)
+static enum abort_result abort_td(struct usb_device *udev, int ep_index,
+				  union xhci_trb *late)
 {
 	struct xhci_ctrl *ctrl = xhci_get_ctrl(udev);
 	struct xhci_ring *ring =  ctrl->devs[udev->slot_id]->eps[ep_index].ring;
 	union xhci_trb *event;
 	xhci_comp_code comp;
+	bool completed = false;
 	trb_type type;
 	u64 addr;
 	u32 field;
 
 	xhci_queue_command(ctrl, 0, udev->slot_id, ep_index, TRB_STOP_RING);
 
-	event = xhci_wait_for_event(ctrl, TRB_NONE, XHCI_SYS_TIMEOUT);
-	if (!event)
-		return;
+	for (;;) {
+		event = xhci_wait_for_event(ctrl, TRB_NONE, XHCI_SYS_TIMEOUT);
+		if (!event)
+			return completed ? ABORT_COMPLETED : ABORT_UNKNOWN;
 
-	type = TRB_FIELD_TO_TYPE(le32_to_cpu(event->event_cmd.flags));
-	if (type == TRB_TRANSFER) {
+		type = TRB_FIELD_TO_TYPE(le32_to_cpu(event->event_cmd.flags));
+		if (type != TRB_TRANSFER)
+			break;
+
 		field = le32_to_cpu(event->trans_event.flags);
 		BUG_ON(TRB_TO_SLOT_ID(field) != udev->slot_id);
 		BUG_ON(TRB_TO_EP_INDEX(field) != ep_index);
-		BUG_ON(GET_COMP_CODE(le32_to_cpu(event->trans_event.transfer_len != COMP_STOP)));
+		comp = GET_COMP_CODE(le32_to_cpu(event->trans_event.transfer_len));
+		if (comp != COMP_STOP && comp != COMP_STOP_INVAL) {
+			/* the transfer finished on its own; keep its result */
+			*late = *event;
+			completed = true;
+		}
 		xhci_acknowledge_event(ctrl);
-
-		event = xhci_wait_for_event(ctrl, TRB_COMPLETION,
-					    XHCI_SYS_TIMEOUT);
-		if (!event)
-			return;
-		type = TRB_FIELD_TO_TYPE(le32_to_cpu(event->event_cmd.flags));
-
-	} else {
-		printf("abort_td: Expected a TRB_TRANSFER TRB first\n");
 	}
 
 	comp = GET_COMP_CODE(le32_to_cpu(event->event_cmd.status));
@@ -604,11 +623,13 @@ static void abort_td(struct usb_device *udev, int ep_index)
 	xhci_queue_command(ctrl, addr, udev->slot_id, ep_index, TRB_SET_DEQ);
 	event = xhci_wait_for_event(ctrl, TRB_COMPLETION, XHCI_SYS_TIMEOUT);
 	if (!event)
-		return;
+		return completed ? ABORT_COMPLETED : ABORT_UNKNOWN;
 
 	BUG_ON(TRB_TO_SLOT_ID(le32_to_cpu(event->event_cmd.flags)) != udev->slot_id ||
 	       GET_COMP_CODE(le32_to_cpu(event->event_cmd.status)) != COMP_SUCCESS);
 	xhci_acknowledge_event(ctrl);
+
+	return completed ? ABORT_COMPLETED : ABORT_STOPPED;
 }
 
 static void record_transfer_result(struct usb_device *udev,
@@ -833,8 +854,34 @@ int xhci_bulk_tx(struct usb_device *udev, unsigned long pipe,
 again:
 	event = xhci_wait_for_event(ctrl, TRB_TRANSFER, timeout);
 	if (!event) {
+		union xhci_trb late;
+
 		debug("XHCI bulk transfer timed out, aborting...\n");
-		abort_td(udev, ep_index);
+		switch (abort_td(udev, ep_index, &late)) {
+		case ABORT_COMPLETED:
+			/*
+			 * It finished just as it was cancelled. An event for an
+			 * earlier TRB of a chained TD ended it early (short
+			 * packet), which the result below does not account for;
+			 * report that as a timeout like before.
+			 */
+			if ((uintptr_t)le64_to_cpu(late.trans_event.buffer) !=
+			    (uintptr_t)last_transfer_trb_addr)
+				break;
+			record_transfer_result(udev, &late, available_length);
+			xhci_inval_cache((uintptr_t)buffer, length);
+			xhci_dma_unmap(ctrl, buf_64, length);
+			return (udev->status != USB_ST_NOT_PROC) ? 0 : -1;
+		case ABORT_STOPPED:
+			break;
+		case ABORT_UNKNOWN:
+			/* the controller may still write to it: keep it mapped */
+			printf("XHCI: transfer abort not acknowledged, buffer stays mapped\n");
+			udev->status = USB_ST_NAK_REC;
+			udev->act_len = 0;
+			return -ETIMEDOUT;
+		}
+		xhci_dma_unmap(ctrl, buf_64, length);
 		udev->status = USB_ST_NAK_REC;  /* closest thing to a timeout */
 		udev->act_len = 0;
 		return -ETIMEDOUT;
@@ -881,6 +928,7 @@ int xhci_ctrl_tx(struct usb_device *udev, unsigned long pipe,
 	u32 field;
 	u32 length_field;
 	u64 buf_64 = 0;
+	bool data_unmapped = false;
 	struct xhci_generic_trb *start_trb;
 	struct xhci_ctrl *ctrl = xhci_get_ctrl(udev);
 	int slot_id = udev->slot_id;
@@ -1056,6 +1104,7 @@ int xhci_ctrl_tx(struct usb_device *udev, unsigned long pipe,
 	if (length > 0) {
 		xhci_inval_cache((uintptr_t)buffer, length);
 		xhci_dma_unmap(ctrl, buf_64, length);
+		data_unmapped = true;
 	}
 
 	if (GET_COMP_CODE(le32_to_cpu(event->trans_event.transfer_len))
@@ -1073,7 +1122,19 @@ int xhci_ctrl_tx(struct usb_device *udev, unsigned long pipe,
 
 abort:
 	debug("XHCI control transfer timed out, aborting...\n");
-	abort_td(udev, ep_index);
+	{
+		union xhci_trb late;
+
+		/*
+		 * Control transfers keep their timeout result even when the
+		 * last stage completed late. The data buffer is released here
+		 * only if the data stage was not already unmapped above and
+		 * the controller confirmed the stop.
+		 */
+		if (abort_td(udev, ep_index, &late) != ABORT_UNKNOWN &&
+		    length > 0 && !data_unmapped)
+			xhci_dma_unmap(ctrl, buf_64, length);
+	}
 	udev->status = USB_ST_NAK_REC;
 	udev->act_len = 0;
 	return -ETIMEDOUT;
