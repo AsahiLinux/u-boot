@@ -1022,6 +1022,9 @@ int console_announce_r(void)
 #if !CONFIG_IS_ENABLED(PRE_CONSOLE_BUFFER)
 	char buf[DISPLAY_OPTIONS_BANNER_LENGTH];
 
+	if (IS_ENABLED(CONFIG_SILENT_CONSOLE) && (gd->flags & GD_FLG_SILENT))
+		return 0;
+
 	display_options_get_banner(false, buf, sizeof(buf));
 
 	console_puts_select(stdout, false, buf);
